@@ -4,7 +4,7 @@ Clam is developed spec-first. Every epic has a spec in this folder. A spec
 describes how the feature works now and is committed together with the code
 that implements it.
 
-Specs are written by Claude (the architect role) and approved by the owner. The
+Specs are written by Claude (the architect role) and approved by kyukhin. The
 spec header does not repeat this.
 
 ## Rules
@@ -16,7 +16,7 @@ spec header does not repeat this.
    Every spec has a row in the index below; the row is updated by whoever
    created the spec, renamed it or changed its status.
 3. **Statuses:** `planned` (in the index, not written yet) → `draft` (written,
-   waiting for the owner) → `approved` (the owner has read the whole spec; the
+   waiting for kyukhin) → `approved` (kyukhin has read the whole spec; the
    date is in the header) → `implemented`. Before `approved` there are neither
    `ready` tasks nor code.
 4. **The spec and the code travel together.** The commit that implements a task
@@ -24,7 +24,7 @@ spec header does not repeat this.
    development is recorded in the spec in the same commit, with the reason.
    - The deviation is visible to the user or changes the architecture (data
      model, storage, migrations, module boundaries, contracts, dependencies) →
-     the spec goes back to `draft`, work stops and waits for the owner to
+     the spec goes back to `draft`, work stops and waits for kyukhin to
      approve it again.
    - A small implementation detail → only a line in "History"; the report after
      the task and the PR description carry the note "spec changed".
@@ -36,10 +36,10 @@ spec header does not repeat this.
 6. **Spec and ADR.** An ADR is a decision that outlives the epic: the stack, the
    modules, the source contract, track identity. A spec links to an ADR and does
    not retell it. If a spec needs another such decision, first comes an ADR in
-   `proposed` and the owner gate.
-7. **The owner's decisions** are recorded with a date: `2026-12-01 (owner): …`.
-   An approval is a line in "History" with the owner's words, translated into
-   English as closely as possible. A question the owner did not answer is closed
+   `proposed` and the kyukhin gate.
+7. **kyukhin's decisions** are recorded with a date: `2026-12-01 (kyukhin): …`.
+   An approval is a line in "History" with kyukhin's words, translated into
+   English as closely as possible. A question kyukhin did not answer is closed
    with the recommendation and marked "accepted by default".
 8. **Style.** English, short and concrete: numbers, names and paths instead of
    adjectives. Present tense, as things are now. No "maybe" or "probably": what
@@ -50,7 +50,7 @@ spec header does not repeat this.
 ```markdown
 # E-NN: <Feature>
 
-> Status: draft | approved by the owner YYYY-MM-DD | implemented · Milestone: MN · Tasks: TASK-NNN, TASK-MMM · Updated: YYYY-MM-DD
+> Status: draft | approved by kyukhin YYYY-MM-DD | implemented · Milestone: MN · Tasks: TASK-NNN, TASK-MMM · Updated: YYYY-MM-DD
 
 Read first: OVERVIEW.md, ADR-NNNN, neighboring specs that change the same place.
 
@@ -62,7 +62,7 @@ What the user sees and does. Every state: empty, loading, error, no network.
 A "was → now" table if something changes.
 
 ### Decisions
-- YYYY-MM-DD (owner): …
+- YYYY-MM-DD (kyukhin): …
 - YYYY-MM-DD (ADR-NNNN): …
 
 ## Design
@@ -75,7 +75,7 @@ Data, modules, API, migrations, constraints. Links to code, ADRs and CONTRACTS.m
 | C2 | … | TASK-NNN | by hand on the device: steps and the expected result |
 
 ## Open questions
-A question for the owner: options, the recommendation, what happens by default. No questions: "None".
+A question for kyukhin: options, the recommendation, what happens by default. No questions: "None".
 
 ## History
 - YYYY-MM-DD: what changed and why.
@@ -91,3 +91,7 @@ approval.
 
 | Spec | Status | Epic |
 |---|---|---|
+| `E-01-project-skeleton.md` | approved 2026-11-27 | E-01 Stack and project skeleton |
+| `E-02-source-contract.md` | planned | E-02 Source contract and fake source |
+| `E-03-automated-code-review.md` | approved 2026-11-27 | E-03 Automated code review and the first checks |
+| `E-04-open-source-basics.md` | planned | E-04 Open-source basics |

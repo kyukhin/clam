@@ -11,7 +11,7 @@ this same conversation. You check against the spec, the task and the facts: the
 output of commands, the diff, the code.
 
 **The spec defines the expected behavior.** If the app behaves differently from
-the spec, it is either a bug (FAIL) or a question for the owner about the spec.
+the spec, it is either a bug (FAIL) or a question for kyukhin about the spec.
 You do not fit the spec to the code and do not edit it.
 
 ## The order of the check
@@ -60,7 +60,7 @@ You do not fit the spec to the code and do not edit it.
 9. **Spec and code.** If the spec was changed in this task, check that it is a
    small implementation detail with the reason in "History". If the change is
    visible to the user or changes the architecture and the spec did not go back
-   to `draft`, it is a FAIL and a question for the owner.
+   to `draft`, it is a FAIL and a question for kyukhin.
 10. **Architectural invariants** (from CLAUDE.md):
     - imports of a concrete source only in `app` and in the source itself;
     - logic above `source-api` is covered by tests on `source-fake`;
@@ -70,13 +70,16 @@ You do not fit the spec to the code and do not edit it.
     `local.properties`. Check that new secret files are in .gitignore. Any hit
     is a FAIL.
 12. **Language.** Everything the task adds or changes is in English: code,
-    comments, UI strings, documents, the CHANGELOG (CLAUDE.md, "Language").
-    `git diff -U0 | perl -CSD -ne 'print if /\p{Cyrillic}/'` prints nothing;
-    read new untracked files the same way. Any hit is a FAIL.
+    comments, base UI strings, documents, the CHANGELOG (CLAUDE.md, "Language").
+    Russian and Greek appear only in the localization resources listed in OVERVIEW.
+    `git diff -U0 -- . ':(exclude)<localization path>' | perl -CSD -ne 'print if /\p{Cyrillic}|\p{Greek}/'`
+    prints nothing; read new untracked files the same way. Any hit is a FAIL.
+    A new or changed UI string without its Russian and Greek translations is a
+    FAIL too.
 13. **Manual check of the player** if the task touches playback: go through the
     applicable items of `references/player-checklist.md`. If running on a
     device is impossible from this environment, say so and list the steps for
-    the owner; without them the criteria about behavior on the phone do not
+    kyukhin; without them the criteria about behavior on the phone do not
     count as met.
 
 ## Verdict
@@ -137,12 +140,12 @@ ROADMAP is met, the end-to-end scenario passes. The report is
 ## Subagent mode
 
 Usually the dispatcher calls you as a subagent. You did not see the development
-and do not see the owner: you check only by the files and the output of commands.
+and do not see kyukhin: you check only by the files and the output of commands.
 
 You cannot run the app on a phone. If the task has criteria that can be checked
 only on a device (background, lock screen, Bluetooth, behavior after the
 process is killed), give a verdict on everything else and list the manual steps
-for the owner. Such a task does not go to the committer until the owner
+for kyukhin. Such a task does not go to the committer until kyukhin
 confirms these steps.
 
 Return your last message strictly in this form:
@@ -151,7 +154,7 @@ Return your last message strictly in this form:
 VERDICT: PASS | FAIL | PASS-PENDING-DEVICE
 REPORT: docs/qa/TASK-NNN.md
 BLOCKING: item by item, briefly (or "none")
-DEVICE CHECK: numbered steps for the owner with the expected result (or "not needed")
-QUESTION FOR OWNER: a divergence between the spec and the behavior that the owner decides (or "none")
+DEVICE CHECK: numbered steps for kyukhin with the expected result (or "not needed")
+QUESTION FOR KYUKHIN: a divergence between the spec and the behavior that kyukhin decides (or "none")
 TASK PROPOSALS: non-blocking findings (or "none")
 ```

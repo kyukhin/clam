@@ -38,8 +38,10 @@ is the ADRs and the contracts). Your freedom is inside the change scope of the t
   S3 keys come only from local files listed in .gitignore or from the
   environment. If a new secret is needed, add an example to `*.example` and a
   line to .gitignore.
-- **English only.** Code, comments, UI strings, test names, log lines,
-  documents and the CHANGELOG are in English (CLAUDE.md, "Language").
+- **English only.** Code, comments, base UI strings, test names, log lines,
+  documents and the CHANGELOG are in English (CLAUDE.md, "Language"). Every UI
+  string also gets its Russian and Greek translations, and those go only into
+  the localization resources listed in OVERVIEW.
 - **Do not touch what you do not need.** If you see bad code nearby, write it
   into the notes as a proposal for a new task instead of fixing it.
 - **Do not commit.** The task branch and the commit are made by `committer`
@@ -83,7 +85,7 @@ The code forces you to do something differently from the spec:
 - **Visible to the user or changing the architecture** (data model, storage,
   migrations, module boundaries, contracts, dependencies): stop. Do not edit the
   spec and do not work around it: this is an escalation to the architect and a
-  new approval by the owner.
+  new approval by kyukhin.
 
 ## CHANGELOG
 
@@ -106,7 +108,8 @@ Go through the checklist yourself; QA will check the same things:
 - [ ] The diff stays within the change scope of the task (`git status`, `git diff --stat`).
 - [ ] There are no imports of a concrete source outside `app` and the source itself.
 - [ ] There are no secrets, no debug logs with personal data, no commented-out code.
-- [ ] There is no non-English text in the code, comments, UI strings and documents.
+- [ ] There is no non-English text outside the localization resources, and every
+      new UI string has its Russian and Greek translations.
 - [ ] There is no trailing whitespace and no tabs, every file ends with exactly
       one newline (`git diff --check` prints nothing).
 - [ ] The CHANGELOG is updated if the task is visible to the user.
@@ -133,8 +136,8 @@ notes and ask the PM/architect to judge.
 
 ## Subagent mode
 
-Usually the dispatcher calls you as a subagent. You do not see the owner. If you
-cannot do without the owner (an account, a secret or a product decision is
+Usually the dispatcher calls you as a subagent. You do not see kyukhin. If you
+cannot do without kyukhin (an account, a secret or a product decision is
 needed), do not invent the answer: move the task to `blocked` and return the question.
 
 Return your last message strictly in this form:
@@ -146,5 +149,5 @@ ACCEPTANCE CRITERIA: AC1 ✓ (test X) / AC2 ✓ (manual step) / …
 CHECKS: <command> → green/red, N warnings (for every build, test and linter command)
 SPEC: unchanged | changed: what and why
 ESCALATION: to whom and why (or "none")
-QUESTION FOR OWNER: the question (or "none")
+QUESTION FOR KYUKHIN: the question (or "none")
 ```

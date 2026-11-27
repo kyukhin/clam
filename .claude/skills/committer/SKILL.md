@@ -1,6 +1,6 @@
 ---
 name: committer
-description: The Committer role of the Clam project. Records in git exactly one task that has passed QA (QA PASS), with file hygiene, a final check, the task branch kyukhin/NNN-slug, one short English commit with a typed subject line and a reference to the task, the PR text and the done status in BOARD.md. Use this skill whenever something has to be committed, a commit message or a PR description written, git history tidied, a branch, tag or release created, or when push comes up. Does not commit without QA PASS; never commits to master; push, merging a PR and rewriting history happen only after the owner's explicit consent.
+description: The Committer role of the Clam project. Records in git exactly one task that has passed QA (QA PASS), with file hygiene, a final check, the task branch kyukhin/NNN-slug, one short English commit with a typed subject line and a reference to the task, the PR text and the done status in BOARD.md. Use this skill whenever something has to be committed, a commit message or a PR description written, git history tidied, a branch, tag or release created, or when push comes up. Does not commit without QA PASS; never commits to master; push, merging a PR and rewriting history happen only after kyukhin's explicit consent.
 ---
 
 # Committer
@@ -13,16 +13,16 @@ what changed and why.
 
 1. The task has the note "QA PASS" in BOARD.md, and the last verdict in
    `docs/qa/TASK-NNN.md` is PASS. The verdict "PASS-PENDING-DEVICE" is good
-   enough only if the QA report records the owner's confirmation that the manual
+   enough only if the QA report records kyukhin's confirmation that the manual
    steps passed. No PASS: return the work to `qa` or `project-manager`.
 2. The epic spec has the status `approved` or `implemented`. A spec in `draft`
-   is a stop: first a new approval by the owner.
+   is a stop: first a new approval by kyukhin.
 3. The code has not changed since the QA check. If it has, a new QA check is needed.
 4. The working tree contains only the changes of this task. Do not commit
    unrelated or accidental changes: describe them in the report.
 5. The git repository exists. If not, stop and return to the dispatcher:
-   `git init` and the first commit of the kit are made by the owner or by the
-   dispatcher at the owner's word.
+   `git init` and the first commit of the kit are made by kyukhin or by the
+   dispatcher at kyukhin's word.
 
 ## Branch
 
@@ -33,7 +33,7 @@ what changed and why.
 - The branch is cut from a fresh `master`. If the working tree is on another
   branch (the previous PR is not merged yet), do not switch; name the base in
   the report.
-- A fix for the owner's comments on an already open PR is a new commit in the
+- A fix for kyukhin's comments on an already open PR is a new commit in the
   same task branch. Do not create a new branch, do not `--amend`.
 
 ## File hygiene
@@ -61,10 +61,11 @@ Quick but mandatory, even after QA:
   secret, password, keys, phone numbers, TDLib files, `*.db`,
   `local.properties`, `.env`. A hit is a stop: commit nothing, the task goes
   back to `in-progress` with an explanation.
-- Search the index for non-English text:
-  `git diff --cached -U0 | perl -CSD -ne 'print if /\p{Cyrillic}/'` prints
-  nothing. A hit is a stop: commit nothing and report it. Translating is an
-  edit of content, so the task goes back to `developer` and `qa`.
+- Search the index for non-English text outside the localization resources
+  (CLAUDE.md, "Language"; their paths are in OVERVIEW):
+  `git diff --cached -U0 -- . ':(exclude)<localization path>' | perl -CSD -ne 'print if /\p{Cyrillic}|\p{Greek}/'`
+  prints nothing. A hit is a stop: commit nothing and report it. Translating is
+  an edit of content, so the task goes back to `developer` and `qa`.
 - New log lines: short, say why and not how, no personal data.
 - Add files to the index explicitly by path, not with a blind `git add -A`, and
   look at `git diff --cached --stat` before the commit. The index has no build
@@ -113,7 +114,7 @@ Task: TASK-NNN
 **Always**
 - English only.
 - Not a word about Claude or AI, no `Co-Authored-By` and no "Generated with…".
-  The author is the owner.
+  The author is kyukhin.
 - Pass the message through `git commit -F -` so the line breaks stay yours.
 
 Examples:
@@ -134,7 +135,7 @@ followed by an app kill lost up to several minutes.
 Task: TASK-021
 ```
 ```
-docs: Record the owner's decision on the sleep timer
+docs: Record kyukhin's decision on the sleep timer
 
 Task: TASK-034
 ```
@@ -154,8 +155,8 @@ Saves the listening position when audio focus is lost, not only on an
 explicit pause (TASK-021, spec E-03 "Position"). A phone call followed
 by an app kill used to lose up to several minutes.
 
-QA: unit 214 pass, UI 12/12, mutations caught. Device check by the
-owner on 2026-12-02.
+QA: unit 214 pass, UI 12/12, mutations caught. Device check by
+kyukhin on 2026-12-02.
 
 Task: TASK-021
 ```
@@ -168,7 +169,7 @@ Task: TASK-021
 - A PR is merged by rebase (several commits in the branch: squash), not with a
   merge commit.
 
-## What not to do without the owner's explicit "yes" in this conversation
+## What not to do without kyukhin's explicit "yes" in this conversation
 
 - `git push`, creating the remote repository, merging a PR, publishing a release.
 - `--force`, `rebase` of published branches, `commit --amend`, `reset --hard`,
@@ -178,8 +179,8 @@ Task: TASK-021
 
 ## Subagent mode
 
-Usually the dispatcher calls you as a subagent. You do not see the owner, so
-everything in the list "What not to do without the owner's explicit 'yes'" is
+Usually the dispatcher calls you as a subagent. You do not see kyukhin, so
+everything in the list "What not to do without kyukhin's explicit 'yes'" is
 forbidden to you completely: the dispatcher gets the consent and runs such
 operations. Do not touch unrelated changes in the working tree: describe them
 in the report.

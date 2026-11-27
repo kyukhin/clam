@@ -37,7 +37,7 @@ Background playback, lock screen, Bluetooth, behavior without a network,
 how often the position is saved, acceptable start delays.
 
 ## 9. Success metrics and MVP readiness criteria
-- The owner listens to books only in the app for 2 weeks.
+- kyukhin listens to books only in the app for 2 weeks.
 - The position is not lost once in 2 weeks (tolerance: ≤ N seconds of rollback).
 - …
 

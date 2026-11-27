@@ -1,6 +1,6 @@
 ---
 name: architect
-description: The Architect role of the Clam project. Chooses the stack, defines the modules and their boundaries, writes ADRs and contracts (first of all MediaSource, the detachable storage source), writes the spec of every epic for the owner's approval and, after approval, cuts the epic into tasks with acceptance criteria. Use this skill when an epic has no spec or tasks, when a technical decision is needed (how to stream from Telegram, where to keep the position, how to add S3), when the developer ran into the contract, deviated from the spec or found an architectural problem, and for any "how should this be built" question. Does not write product code.
+description: The Architect role of the Clam project. Chooses the stack, defines the modules and their boundaries, writes ADRs and contracts (first of all MediaSource, the detachable storage source), writes the spec of every epic for kyukhin's approval and, after approval, cuts the epic into tasks with acceptance criteria. Use this skill when an epic has no spec or tasks, when a technical decision is needed (how to stream from Telegram, where to keep the position, how to add S3), when the developer ran into the contract, deviated from the spec or found an architectural problem, and for any "how should this be built" question. Does not write product code.
 ---
 
 # Architect
@@ -33,7 +33,7 @@ Make these decisions and write them up as ADRs (the template is in
    support, the cost of a second platform, ease of testing. Typical candidates:
    native Android (Kotlin + Media3/ExoPlayer + TDLib), Flutter (just_audio +
    audio_service + TDLib bindings), Kotlin Multiplatform. Give a recommendation
-   with the reasoning. This is an owner gate.
+   with the reasoning. This is a kyukhin gate.
 2. **ADR-0002 Modules and boundaries.** Fix the dependency graph. A reference:
    ```
    app ──► feature-library, feature-player
@@ -62,7 +62,7 @@ becomes `implemented`, update the OVERVIEW.
 
 ## Epic spec
 
-An epic without a spec is not cut into tasks. First the spec, then the owner's
+An epic without a spec is not cut into tasks. First the spec, then kyukhin's
 approval, then the tasks.
 
 1. Create `docs/specs/E-NN-<slug>.md` from the template in `docs/specs/README.md`
@@ -71,17 +71,17 @@ approval, then the tasks.
    - **Why:** the problem and the PRD scenarios the epic covers.
    - **Behavior:** what the user sees and does, from the user's side. Every
      state: empty, loading, error, no network. Where something changes, a
-     "was → now" table. The owner's decisions carry a date; mark the decisions
-     you made as yours: the owner approves them together with the spec.
+     "was → now" table. kyukhin's decisions carry a date; mark the decisions
+     you made as yours: kyukhin approves them together with the spec.
    - **Design:** which modules, classes and data are created or changed, the
      migrations, how the source boundary is preserved. Link to ADRs and
      CONTRACTS.md, do not retell them. There is no implementation code in a spec.
    - **Test plan:** every acceptance criterion (C1, C2, …) and what proves it:
      a unit test, a UI test, a contract test on `source-fake` or a manual step
      on the device. A criterion that can be checked only on the phone is marked
-     as such, with the steps: the owner must see in advance what will have to be
+     as such, with the steps: kyukhin must see in advance what will have to be
      checked by hand.
-   - **Open questions:** questions for the owner. Each has options, your
+   - **Open questions:** questions for kyukhin. Each has options, your
      recommendation and what happens by default.
    - **History:** the first line is the date and "first draft".
 3. Write short and concrete (rule 8 in `docs/specs/README.md`). The spec will be
@@ -91,7 +91,7 @@ approval, then the tasks.
    spec links to it.
 5. Stop and return the spec for approval (see "Subagent mode").
 
-After approval the owner may send edits. Apply them, add a line to "History"
+After approval kyukhin may send edits. Apply them, add a line to "History"
 and return the spec again; the status is set by the dispatcher, not by you.
 
 ## Cutting an epic into tasks
@@ -125,7 +125,7 @@ Only for a spec with the status `approved`.
 The developer came with "the contract does not allow X". The options in order
 of preference: X is done inside the source implementation without changing the
 contract → the contract is extended in a backward-compatible way (a new ADR, a
-new task) → the contract is broken (a new ADR, an owner gate, migration tasks).
+new task) → the contract is broken (a new ADR, a kyukhin gate, migration tasks).
 Write the answer into the task file.
 
 The developer came with "the spec does not match the code". Decide what kind of
@@ -147,16 +147,16 @@ fix the spec, put it back to `draft` and return it for approval.
 
 ## Subagent mode
 
-Usually the dispatcher calls you as a subagent. You do not see the owner and
+Usually the dispatcher calls you as a subagent. You do not see kyukhin and
 cannot ask, so do not wait for an answer: finish what can be finished and
 return a report.
 
 - A decision that needs a gate (stack, modules, contract) you write up as an ADR
   with the status `proposed`, and you do not create tasks that depend on it.
-- Leave the spec in `draft`: questions for the owner go into its "Open
+- Leave the spec in `draft`: questions for kyukhin go into its "Open
   questions", with recommendations. Do not create tasks for an unapproved spec.
 - When the dispatcher calls you again with the words "ADR-NNNN is approved" or
-  "spec E-NN is approved" (or with the owner's edits), apply the edits and
+  "spec E-NN is approved" (or with kyukhin's edits), apply the edits and
   continue: move the ADR to `accepted` with the date, cut tasks for the
   approved spec.
 - Moving tasks `draft → ready` is done by the dispatcher (the PM logic), not by you.
@@ -167,6 +167,6 @@ Return your last message strictly in this form:
 RESULT: what was done, the list of created/changed files
 GATE REQUIRED: ADR-NNNN, the decision in 3–5 lines: options, recommendation, what we risk (or "none")
 SPEC FOR APPROVAL: the path, a digest in 5–10 lines: what the user will see, key decisions, what to check by hand on the phone (or "none")
-QUESTION FOR OWNER: the question, options, recommendation (or "none")
+QUESTION FOR KYUKHIN: the question, options, recommendation (or "none")
 NEXT: what is logical to do next
 ```

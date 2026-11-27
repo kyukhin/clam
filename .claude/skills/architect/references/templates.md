@@ -11,7 +11,7 @@ duplicated here.
 # ADR-NNNN: <the decision in one sentence>
 
 Status: proposed | accepted (YYYY-MM-DD) | superseded by ADR-MMMM
-Needs the owner gate: yes/no (yes if it changes the stack, the modules or the contract)
+Needs the kyukhin gate: yes/no (yes if it changes the stack, the modules or the contract)
 
 ## Context
 What forces the decision. Links to the PRD and other ADRs.
@@ -28,7 +28,7 @@ What becomes easier, what becomes harder, which tasks appear.
 
 ## History
 - YYYY-MM-DD: proposed.
-- YYYY-MM-DD: accepted by the owner ("the owner's words, translated").
+- YYYY-MM-DD: accepted by kyukhin ("kyukhin's words, translated").
 ```
 
 ## Task: docs/tasks/TASK-NNN-<slug>.md
