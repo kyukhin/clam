@@ -1,0 +1,24 @@
+# Secrets and local configuration
+local.properties
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+secrets/
+
+# TDLib data and sessions
+tdlib/
+tdlib-db/
+*.tdlib
+*.db
+*.db-journal
+*.binlog
+
+# Build output and IDE
+build/
+.gradle/
+.idea/
+*.iml
+.dart_tool/
+.DS_Store
