@@ -20,7 +20,7 @@ Done when: …
 - **E-02 …**
 
 ## Approvals
-- YYYY-MM-DD: the milestone plan is approved by the owner ("the owner's words, translated").
+- YYYY-MM-DD: the milestone plan is approved by kyukhin ("kyukhin's words, translated").
 
 ## Later
 - E-xx <idea>: where it came from, the date

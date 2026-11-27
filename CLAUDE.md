@@ -9,25 +9,35 @@ the books and music is not available on streaming services.
 
 ## Language
 
-- The chat with the owner is in Russian.
+- The chat with kyukhin is in Russian.
 - Everything that lands in the repository or on GitHub is in English only: code,
-  identifiers, comments, the app's UI strings, every document under `docs/`,
-  `CHANGELOG.md`, this kit (`CLAUDE.md`, skills, agents), branch names, commit
-  messages, PR titles and descriptions, review comments and issues.
-- The owner's words go into documents in English translation, as close to the
-  original as possible. Russian text is never pasted into a file.
-- The templates in this kit are in English. What you say to the owner in chat
+  identifiers, comments, the app's base UI strings, every document under
+  `docs/`, `CHANGELOG.md`, this kit (`CLAUDE.md`, skills, agents), branch names,
+  commit messages, PR titles and descriptions, review comments and issues.
+- The one exception: the app's interface is translated into Russian and Greek.
+  The translations live only in the localization resources and in the store
+  listing texts for these languages; their paths are fixed by the stack ADR and
+  listed in `docs/architecture/OVERVIEW.md`. Keys, the base language, code and
+  comments stay English.
+- kyukhin's words go into documents in English translation, as close to the
+  original as possible. Outside the localization resources no Russian or Greek
+  text is ever pasted into a file.
+- The templates in this kit are in English. What you say to kyukhin in chat
   (reports, digests, questions) you say in Russian.
 
-2026-11-27 (owner, translated): "All texts on GitHub are in English only."
+2026-11-27 (kyukhin, translated): "All texts on GitHub are in English only."
+2026-11-27 (kyukhin, translated): the interface languages are "English, Russian, Greek".
+
+The person who runs the project and makes the decisions is written as
+`kyukhin` in every file, never as a role name (2026-11-27, kyukhin's request).
 
 ## You are the dispatcher
 
-The owner talks only to you. You run the pipeline of roles yourself and stop
-only where the owner is needed (see "When to stop and wait for the owner").
+kyukhin talks only to you. You run the pipeline of roles yourself and stop
+only where kyukhin is needed (see "When to stop and wait for kyukhin").
 
 - **CPO** and **Project Manager** work right in this session: CPO is the
-  dialogue with the owner, PM is your own logic for choosing the next step.
+  dialogue with kyukhin, PM is your own logic for choosing the next step.
   Before working in a role, read its skill: `.claude/skills/cpo/SKILL.md`,
   `.claude/skills/project-manager/SKILL.md`.
 - **Architect, Developer, QA, Committer** are subagents from `.claude/agents/`.
@@ -44,8 +54,8 @@ Development is spec-first: the rules, the template and the index are in
 `docs/specs/README.md`. The pipeline:
 
 ```
-CPO ─► PM ─► Architect: epic spec ─► owner gate ─► Architect: tasks ─►
-    ─► Developer ─► QA ─► Committer ─► PR ─► (report to the owner) ─► PM …
+CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: tasks ─►
+    ─► Developer ─► QA ─► Committer ─► PR ─► (report to kyukhin) ─► PM …
            ▲         │
            └─ FAIL ──┘
 ```
@@ -56,14 +66,14 @@ CPO ─► PM ─► Architect: epic spec ─► owner gate ─► Architect: ta
 2. Using the rules of the project-manager skill, determine the next step.
 3. Do it: yourself (CPO/PM) or by calling a subagent with a clear brief: which
    task or epic, which files to read, what to return.
-4. Read the subagent's report. If it contains `QUESTION FOR OWNER`,
-   `GATE REQUIRED` or `SPEC FOR APPROVAL`, stop and ask the owner.
+4. Read the subagent's report. If it contains `QUESTION FOR KYUKHIN`,
+   `GATE REQUIRED` or `SPEC FOR APPROVAL`, stop and ask kyukhin.
 5. Otherwise go on to the next step without a pause, up to the nearest stop.
 
-A typical task cycle without the owner:
+A typical task cycle without kyukhin:
 developer → qa → (FAIL → developer → qa) → committer → PR → **stop, report**.
 
-## When to stop and wait for the owner
+## When to stop and wait for kyukhin
 
 1. **After every committed task:** a short report (template below) and the
    question "merge and continue?". Do not start the next task before the answer.
@@ -72,21 +82,21 @@ developer → qa → (FAIL → developer → qa) → committer → PR → **stop
    chooses or changes the stack, the module structure or the source contract.
 3. **Outward git:** creating the remote repository, the first push, merging a PR
    into `master`, publishing a release. Pushing a task branch and opening a PR
-   too, until the owner gives a standing permission (see "Git and GitHub").
+   too, until kyukhin gives a standing permission (see "Git and GitHub").
 4. **A task came back from QA for the second time** (do not start a third
-   developer → qa cycle): show the owner what the disagreement is about and
+   developer → qa cycle): show kyukhin what the disagreement is about and
    offer options.
-5. **A `blocked` task** that the architect cannot unblock without the owner.
-6. **A subagent asked the owner a question.**
-7. **QA returned `PASS-PENDING-DEVICE`.** Give the owner the manual steps from
-   the QA report. When the owner answers, add the section "Owner check on
-   device" to `docs/qa/TASK-NNN.md` (the date, what was confirmed in the
-   owner's words, what did not pass). Everything passed → committer; something
+5. **A `blocked` task** that the architect cannot unblock without kyukhin.
+6. **A subagent asked kyukhin a question.**
+7. **QA returned `PASS-PENDING-DEVICE`.** Give kyukhin the manual steps from
+   the QA report. When kyukhin answers, add the section "Check by kyukhin on
+   device" to `docs/qa/TASK-NNN.md` (the date, what was confirmed in
+   kyukhin's words, what did not pass). Everything passed → committer; something
    did not pass → developer, with this section as the finding.
 
 Silence is not consent. "OK, go on" is consent only to what was shown.
 
-## Agreeing documents with the owner
+## Agreeing documents with kyukhin
 
 Applies to the PRD, the milestone plan, ADRs that need a gate and epic specs.
 
@@ -97,11 +107,11 @@ Applies to the PRD, the milestone plan, ADRs that need a gate and epic specs.
 2. **Open questions come with a recommendation.** For each: the options, what
    you recommend and what happens by default. No more than 3–5 at a time.
 3. **Approval is explicit only.** After a "yes", write the status and the date
-   into the document header and a line with the owner's words into its
-   "History". A question the owner did not answer is closed with the
+   into the document header and a line with kyukhin's words into its
+   "History". A question kyukhin did not answer is closed with the
    recommendation and marked "accepted by default".
-4. **Edits.** First record the owner's words in the document as a decision with
-   a date (`2026-12-01 (owner): …`), then call the role to rework it, then show
+4. **Edits.** First record kyukhin's words in the document as a decision with
+   a date (`2026-12-01 (kyukhin): …`), then call the role to rework it, then show
    what changed and ask again.
 5. **An approved document does not change silently.** Every edit is a line in
    "History". An edit that the user will notice or that changes the
@@ -119,7 +129,7 @@ Notes for later: new draft tasks, if any appeared.
 Next: TASK-MMM <title> (role). Merge the PR and continue?
 ```
 
-No logs, diffs or retelling of the QA report: the owner can ask for details.
+No logs, diffs or retelling of the QA report: kyukhin can ask for details.
 While there is no remote repository, a short commit hash stands in for the PR.
 
 ## Git and GitHub
@@ -133,21 +143,27 @@ skill). Everything below you do yourself.
 - **PR.** After the committer's report: `git push -u origin <branch>` and
   `gh pr create` into `master`. The title is the first line of the commit, the
   description comes from the committer's report.
-- **Merging** happens after the owner's "yes": `gh pr merge --rebase --delete-branch`
+- **Merging** happens after kyukhin's "yes": `gh pr merge --rebase --delete-branch`
   (several commits in the branch: `--squash`), then `git switch master` and
   `git pull --rebase`. Never `git merge` with a merge commit.
-- **The owner's comments on a PR** go the usual way: developer → qa → committer,
+- **kyukhin's comments on a PR** go the usual way: developer → qa → committer,
   a new commit in the same branch. `--amend`, `rebase` and force-push happen
-  only at the owner's explicit request.
+  only at kyukhin's explicit request.
 - **While there is no remote repository** the same happens locally: a task
   branch, a commit, and after a "yes" `git switch master` and
   `git merge --ff-only <branch>`.
 - **Commits and PRs:** English, short, no mention of Claude or AI, no
-  `Co-Authored-By` and no "Generated with…" signatures. The author is the owner.
+  `Co-Authored-By` and no "Generated with…" signatures. The author is kyukhin.
 
-Standing permissions of the owner. Only the owner changes them, in words in the
+Standing permissions of kyukhin. Only kyukhin changes them, in words in the
 chat; record the date and the quote.
-- Pushing task branches and opening PRs without asking: **no**.
+- Pushing task branches and opening PRs without asking: **yes** (2026-11-27,
+  kyukhin: "3. yes" to "Give a standing permission to push branches and open
+  PRs without asking? Merging into `master` still only by your 'yes'.").
+  Merging a PR into `master` still needs kyukhin's "yes" every time.
+- Parallel work: **yes**, within limits: two architects at a time; two
+  developers at a time in M0, up to three from M1 (2026-11-27, kyukhin:
+  "2. yes" to the proposal with exactly these limits).
 
 ## How to brief a subagent
 
@@ -157,8 +173,8 @@ conversation):
 - a link to the task or epic (`docs/tasks/TASK-NNN-*.md`), to the epic spec
   (`docs/specs/E-NN-*.md`) and to an ADR if needed;
 - what to return (the report format is described in the role's skill);
-- special instructions of the owner from this conversation, if they concern the task.
-Decisions the owner made in the chat are first recorded in documents (PRD, ADR,
+- special instructions of kyukhin from this conversation, if they concern the task.
+Decisions kyukhin made in the chat are first recorded in documents (PRD, ADR,
 spec, task file): a subagent knows only what is written down.
 
 ## Subagent models
@@ -175,7 +191,7 @@ after a QA FAIL use the same model as the first time.
 Spec statuses, `planned → draft → approved → implemented`, live in the spec
 header and in the index `docs/specs/README.md`.
 Do not keep state in your head. At the start of every session read BOARD.md and
-tell the owner briefly where we are and what is next.
+tell kyukhin briefly where we are and what is next.
 
 ## Architectural invariants (from day one)
 
@@ -201,7 +217,7 @@ docs/
   architecture/adr/NNNN-*.md     architecture decisions (Architect)
   specs/README.md                spec rules, template, index
   specs/E-NN-*.md                epic spec: behavior, design, test plan
-                                 (Architect writes, the owner approves)
+                                 (Architect writes, kyukhin approves)
   tasks/TASK-NNN-*.md            tasks (Architect creates, Developer adds notes)
   qa/TASK-NNN.md                 QA reports
 CHANGELOG.md                     what changed for the user (Developer)
@@ -219,5 +235,6 @@ CHANGELOG.md                     what changed for the user (Developer)
   gets fixed.
 - Do not bypass checks (`--no-verify`, disabled tests).
 - Do not commit to `master` and do not create merge commits.
-- Do not start the next task without the owner's answer to the report.
-- Do not put non-English text into the repository or on GitHub.
+- Do not start the next task without kyukhin's answer to the report.
+- Do not put non-English text into the repository or on GitHub, except the
+  Russian and Greek translations in the localization resources.
