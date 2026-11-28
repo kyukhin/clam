@@ -1,6 +1,6 @@
 # ADR-0005: CodeRabbit reviews every pull request after the commit, as a second line that does not block a merge; the dispatcher sorts its findings
 
-Status: proposed
+Status: accepted (2026-11-27)
 Needs the kyukhin gate: yes (changes the pipeline of CLAUDE.md and extends a third-party service's write access to this repository)
 
 ## Context
@@ -32,9 +32,9 @@ Needs the kyukhin gate: yes (changes the pipeline of CLAUDE.md and extends a thi
   again.
 - PRD §3, a CPO decision: "The only running cost is the Apple Developer fee."
   The review has to cost nothing.
-- The pipeline today: developer → qa → committer → the dispatcher pushes and
-  opens the PR → report to kyukhin → kyukhin says whether to merge. Nothing
-  reads the PR between the push and kyukhin.
+- The pipeline before this ADR: developer → qa → committer → the dispatcher
+  pushes and opens the PR → report to kyukhin → kyukhin says whether to
+  merge. Nothing read the PR between the push and kyukhin.
 
 ### What was checked on 2026-11-27
 
@@ -62,6 +62,8 @@ Sources are at the end.
 | V16 | **Fallback, GitHub Copilot code review.** Copilot Free has only "Review selection" in VS Code; review of pull requests is in Copilot Pro, 10 USD a month. Since 2026-06-01 Copilot is billed by usage |
 | V17 | **Fallback, Qodo.** Its free open-source program asks for a public repository with 200 or more stars |
 | V18 | **Which settings apply.** A file in the repository is the starting layer and takes precedence over the settings of the account in CodeRabbit's web interface; what the file leaves out falls to the built-in defaults, not to the web interface. A repository without a file uses the settings of the web interface |
+| V19 | **The published schema, and a file with a mistake.** The JSON schema of V2 that CodeRabbit publishes, `coderabbit.ai/integrations/schema.v2.json`, has no `version` property and rejects unknown top-level keys. The docs: "An editor flags `version` (including `version: 2`) and `remote_config`, although CodeRabbit accepts both at review time." Every other key that the E-03 spec puts into Clam's file is in that schema. "When a file fails to parse or has a wrong value type, CodeRabbit drops the file for that review" and uses the next layers. "Unknown V2 keys don't fail the review; the summary lists them as unrecognized properties." |
+| V20 | **Reviews after a push.** "By default, CodeRabbit reviews each push to a reviewed pull request, looking at the commits added since the last review." With `reviews.auto_review.auto_incremental_review` set to `false` it "reviews only the first open and ignores later pushes until you ask". "Automatic incremental reviews count toward the same per-developer rate limit as manual reviews." The page does not say what a force push does |
 
 Verified through the GitHub API, on `kyukhin/clam` and on LibreDict's pull
 requests 370, 372, 376, 380 and 384:
@@ -77,7 +79,8 @@ requests 370, 372, 376, 380 and 384:
 | L7 | The bot appended a block of its own to PR descriptions there (PR 380 ends with "end of auto-generated comment: release notes by coderabbit.ai"). Its comments carry checkboxes that make it change code: "Autofix · Keep fixing CodeRabbit findings and required CI, and resolving merge conflicts" and "Ask CodeRabbit to fix comments on this review" |
 | L8 | Threads of the bot are answered there from kyukhin's account, in the forms "Fixed: …" and "Kept as is. …" |
 | L9 | Fixes after a review there: PR 384 has one commit after four force pushes and five reviews, each more than an hour after the one before; PR 370 has three commits, one `feat` and two `fix`, merged by rebase as they are |
-| L10 | `kyukhin/clam` has had, since 2026-11-27, the same ruleset `master` as LibreDict: no deletion, no force push, a pull request required with 0 approvals, merges by rebase only, no required check, an empty bypass list |
+| L10 | `kyukhin/clam` has had, since 2026-11-27, the same ruleset `master` as LibreDict: no deletion, no force push, a pull request required with 0 approvals, merges by rebase only, no required check, an empty bypass list. The ruleset covers the default branch only: a task branch can be force-pushed |
+| L11 | In LibreDict's PR 384 each of the four force pushes was followed by a review, and each of these reviews posted new comments: "Actionable comments posted" 3, 1, 2 and 2 |
 
 Assumed, not verified:
 
@@ -90,6 +93,7 @@ Assumed, not verified:
 | A5 | The bot writes in the configured language whatever the language of the PR | PRs here are English anyway |
 | A6 | A reply with a reason in a thread becomes a "learning", and the same finding does not come back | The evaluation after 10 PRs |
 | A7 | The permissions of the App cannot be narrowed for one repository | Not needed unless kyukhin wants fewer |
+| A8 | **What the bot does with the force push of a fold** (Decision, item 8). In LibreDict a force push that brought fixes was reviewed when the hour allowed, and the review posted new comments (L4, L5, L11). A fold brings no new file content. Whether the bot then reviews the folded commit, in full, in part or not at all, and whether that uses the review of the hour, is not known; the docs are silent (V20) | The first PR with a fix round, and the evaluation |
 
 ## Options
 
@@ -120,8 +124,9 @@ Whether the review can block a merge:
 
 ## Decision
 
-**CodeRabbit, by kyukhin's choice. A, D1 and G1 are proposed by the architect;
-kyukhin decides.**
+**CodeRabbit, by kyukhin's choice. A, D1 and G1 were proposed by the architect
+and accepted by kyukhin on 2026-11-27. How a fix reaches `master` (item 8) is
+kyukhin's choice, against the architect's recommendation.**
 
 1. **The tool.** The CodeRabbit installation that already serves LibreDict is
    extended to `kyukhin/clam`. Its settings for Clam live in a small
@@ -177,50 +182,64 @@ kyukhin decides.**
 7. **One fix round.** The dispatcher adds a section "Review findings" to
    `docs/qa/TASK-NNN.md` (the date, a link to each thread, what is wrong) and
    moves the task back to `in-progress`. Then developer → qa → committer: a
-   new commit in the same branch, pushed by the dispatcher. This is the path
-   kyukhin's own comments on a PR already take. The dispatcher looks for a
-   review of the new commit once, by items 4 and 5; within the hour after the
-   first review there is none (L5), and QA's check of the fix stands. A
-   defect found in the fix commit is a stop: kyukhin sees the findings and
-   the options. In a PR that holds documents only, a defect goes to the role
-   that owns the document.
-8. **No code changes outside the pipeline.** Nobody applies a suggestion of the
+   new commit in the same branch, with a `fix:` subject, pushed by the
+   dispatcher. This is the path kyukhin's own comments on a PR already take.
+   The dispatcher looks for a review of the new commit once, by items 4 and
+   5; within the hour after the first review there is none (L5), and QA's
+   check of the fix stands. A defect found in the fix commit is a stop:
+   kyukhin sees the findings and the options. In a PR that holds documents
+   only, a defect goes to the role that owns the document.
+8. **One task, one commit.** `2026-11-27 (kyukhin)`: "we squash into one
+   commit and force-push the branch". A fix commit does not reach `master` as
+   a commit of its own. Before the report the dispatcher folds the commits of
+   the branch into the task's commit, checks that the fold changed no file
+   and pushes the branch with `--force-with-lease`. The fold is not the
+   committer's: its agent definition forbids `rebase` and a force push. Its
+   report on a fix commit says whether the message of the task's commit
+   still describes the result. The fold changes no file, so it needs no new
+   QA, and nobody waits for a review of the folded commit. A fix after
+   kyukhin's own comments on a PR is folded the same way. The steps are in
+   CLAUDE.md, "One task, one commit"; the options that were weighed are under
+   "Merging by rebase only" below.
+9. **No code changes outside the pipeline.** Nobody applies a suggestion of the
    bot on the GitHub page, ticks a box in its comments (L7), or gives it a
    command that changes code (V5) or `@coderabbitai approve`. Every change
    after QA goes through the developer and QA.
-9. **Answers.** Before the report the dispatcher answers and resolves every
-   thread of the bot, in the forms LibreDict uses (L8): `Fixed in <hash>: <what
-   changed>.`, `Kept as is: <reason and reference>.` or `Recorded as a
-   follow-up.` One or two sentences, in English, with no mention of Claude or
-   AI: the answers appear under kyukhin's name. The dispatcher does not
-   continue an exchange with the bot.
-10. **The report** gets two lines: "Review" with the counts by class, and
+10. **Answers.** Before the report the dispatcher answers and resolves every
+    thread of the bot, in the forms LibreDict uses (L8): `Fixed: <what
+    changed>.`, `Kept as is: <reason and reference>.` or `Recorded as a
+    follow-up.` An answer names no commit: the fix commit is folded away
+    (item 8). One or two sentences, in English, with no mention of Claude or
+    AI: the answers appear under kyukhin's name. The dispatcher does not
+    continue an exchange with the bot.
+11. **The report** gets two lines: "Review" with the counts by class, and
     "GitHub check" with the state of the job as it is when the report is
     written. A red job is named there, and kyukhin decides (E-01).
-11. **Commenting in kyukhin's name is a new standing permission.** Items 4, 5
-    and 9 post comments from kyukhin's account, as LibreDict's history shows
-    them (L4, L8). In Clam only kyukhin gives such a permission, in words.
-    Until then the dispatcher puts the findings and the answers it proposes
-    into the report, and a review the bot did not start by itself is asked
-    for by kyukhin. This is open question 1 of the E-03 spec.
-12. **Evaluation.** After the first 10 task PRs the architect counts, from the
+12. **Commenting in kyukhin's name is a standing permission,** given by
+    kyukhin on 2026-11-27 ("2 yes") for the review only: asking the bot for a
+    review it did not start, answering its threads and resolving them. Items
+    4, 5 and 10 post such comments from kyukhin's account, as LibreDict's
+    history shows them (L4, L8). Nothing else is posted in kyukhin's name
+    without asking. CLAUDE.md, "Standing permissions of kyukhin", holds the
+    permission with kyukhin's words.
+13. **Evaluation.** After the first 10 task PRs the architect counts, from the
     reports, the findings by class and the PRs that got no review, and
     proposes to kyukhin to keep the tool, to change its settings or to switch.
-    The times of item 5 are revised then.
+    The times of item 5 are revised then, and A8 is answered.
 
 ### Compared with LibreDict
 
 Read from LibreDict's pull requests; its kit has no rule about the bot. The
-right column is the architect's proposal.
+right column is what kyukhin accepted on 2026-11-27.
 
 | | LibreDict today | Clam |
 |---|---|---|
-| Starting a review | The bot starts by itself on opening and on a push. kyukhin's account also comments `@coderabbitai review`; the comment matters after a push that met the hourly limit (L4, L5) | The dispatcher comments only when the bot did not start (E-03, open question 1) |
-| Settings of the bot | No file: the account's settings in CodeRabbit's web interface (V18) | A small file in the repository (E-03, open question 2) |
+| Starting a review | The bot starts by itself on opening and on a push. kyukhin's account also comments `@coderabbitai review`; the comment matters after a push that met the hourly limit (L4, L5) | The dispatcher comments, in kyukhin's name, only when the bot did not start (item 12) |
+| Settings of the bot | No file: the account's settings in CodeRabbit's web interface (V18) | A small file in the repository (kyukhin, 2026-11-27: "3 yes"; spec E-03) |
 | PR description | The bot appends its own block (L7) | The bot's summary stays in its own comment; the description stays the committer's |
 | Answers to threads | From kyukhin's account: "Fixed: …", "Kept as is. …" (L8) | The same forms |
 | Rounds on one PR | Up to five reviews, each more than an hour after the one before (L9) | One fix round, then a stop for kyukhin |
-| Fixes after a review | Folded into the commit and force-pushed, or separate `fix` commits (L9) | Separate commits; see "Merging by rebase only" below (E-03, open question 3) |
+| Fixes after a review | Folded into the commit and force-pushed, or separate `fix` commits (L9) | A `fix` commit first, folded into the task's commit and force-pushed before the report: one commit per task on `master`, the way of LibreDict's PR 384 (item 8) |
 | Merge | Rebase only | Rebase only (L10) |
 
 ### When CodeRabbit is unsuitable, and the fallback
@@ -256,6 +275,7 @@ Easier:
 - The bot reads CLAUDE.md and the skills (V11), so it knows the language rule
   and the invariants without extra setup.
 - Nothing new to sign up for: the account and the installation exist (L3).
+- `master` holds one commit per task, whatever the review found (item 8).
 
 Harder, and what we risk:
 - **A third party holds write access to the code and to the workflows** (V4),
@@ -272,7 +292,20 @@ Harder, and what we risk:
 - **The report comes later,** by the length of the review: up to 15 minutes,
   and up to 30 more when the limit ends soon.
 - **A fix round is expensive:** a second run of the developer, QA and the
-  committer. The sorting keeps it for defects.
+  committer, and a fold by the dispatcher. The sorting keeps it for defects.
+- **A task branch is rewritten after QA and after the review** (item 8). What
+  bounds it: only the dispatcher folds; it checks that the folded commit
+  holds the same files as the tip it replaces; the push is
+  `--force-with-lease`; the ruleset forbids a force push to `master` (L10).
+  What a fix round changed is not a commit on `master`: it is read on the PR
+  page, in the threads, in their answers and in the comparison GitHub keeps
+  for a force push.
+- **Every fold is one more push.** The `check` job starts again on the folded
+  commit, and the PR page no longer shows the result it had on the same
+  files. The bot can answer the push with a review (L11, A8): such a review
+  comes after the dispatcher's answers, can come after the report, and can
+  use the one review of the hour (L5), which the next PR then lacks. As
+  CLAUDE.md stands on 2026-11-27, the dispatcher waits for neither.
 - **The dispatcher judges findings.** What bounds it: every "kept as is"
   carries a public reason, doubt means defect, design questions go to the
   architect.
@@ -291,217 +324,94 @@ Not affected:
 
 What appears:
 - The spec `docs/specs/E-03-automated-code-review.md`: the installation step,
-  the settings file, the first checks.
-- The text below, applied to CLAUDE.md and to two skills by the dispatcher
-  after kyukhin accepts this ADR. Agents do not edit the kit on their own.
+  the settings file, the first checks; its tasks are TASK-001 to TASK-004.
+- The review step in CLAUDE.md and in the committer's and the developer's
+  skills. The dispatcher applied it on 2026-11-27 (see "The kit text"
+  below). Agents do not edit the kit on their own.
 
-## Proposed text for CLAUDE.md and the skills
+## The kit text
 
-### Merging by rebase only: what the kit says today no longer works
+This ADR proposed the wording of the review step for CLAUDE.md and for two
+skills. The dispatcher applied it on 2026-11-27, after kyukhin's answers, in
+the M2 wording described below; the commit is "docs: Add the review step and
+one-commit merges to the kit". The proposed text is no longer kept here: a
+second copy would drift. CLAUDE.md and the two skills hold the text in force.
+Where this ADR and the kit differ about a step, the kit says what is done and
+this ADR says why.
 
-The ruleset of `master` allows merges by rebase only (L10). CLAUDE.md, "Git and
-GitHub", still says "(several commits in the branch: `--squash`)", and the
-committer's skill, "History", says "(several commits in the branch: squash)".
-`gh pr merge --squash` is refused by GitHub now. The fix round of this ADR
-makes a second commit in a task branch a regular case, so the wording has to
-be settled together with it. Two wordings work; the choice is kyukhin's.
+### Merging by rebase only
+
+The ruleset of `master` allows merges by rebase only (L10). Until 2026-11-27
+CLAUDE.md, "Git and GitHub", said "(several commits in the branch:
+`--squash`)", and the committer's skill, "History", said "(several commits in
+the branch: squash)". GitHub refuses `gh pr merge --squash` now, and the fix
+round of this ADR makes a second commit in a task branch a regular case. Two
+wordings were offered to kyukhin:
 
 | | M1. Every commit lands as it is | M2. One task, one commit |
 |---|---|---|
 | What reaches `master` | The task's commit, and one `fix` commit for each round of fixes after the PR was opened | One commit per task |
-| Before the merge | Nothing | The committer folds the fix commits into the task's commit (`git rebase -i --autosquash`) and checks that the files did not change; the dispatcher pushes with `--force-with-lease` |
-| Needs | Nothing new | A standing permission to rewrite and force-push task branches; CLAUDE.md allows both only at kyukhin's explicit request |
-| Costs | The history shows the fixes | Answers "Fixed in <hash>" point to a commit that is gone; a rewritten branch after QA |
+| Before the merge | Nothing | The fix commits are folded into the task's commit, the files are checked to be the same, and the branch is force-pushed |
+| Needs | Nothing new | A standing permission to rewrite and force-push task branches |
+| Costs | The history of `master` shows the fixes | A branch is rewritten after QA and after the review; an answer cannot name the commit of a fix; every fold is one more push for the `check` job and for the bot |
 | In LibreDict | PR 370 | PR 384 |
 
-The architect recommends M1: it rewrites nothing after QA and needs no new
-permission. The text below is M1. Under M2 the item "Merging" gets one more
-sentence about folding and the force push, and "Standing permissions" gets a
-line for it.
+The architect recommended M1: it rewrites nothing after QA and needs no new
+permission. `2026-11-27 (kyukhin)`, asked how fixes reach `master`: "4 we
+squash into one commit and force-push the branch". That is M2, against the
+recommendation, and it is also the standing permission M2 needs; CLAUDE.md,
+"Standing permissions of kyukhin", records it. M2 is item 8 of the decision.
 
-CLAUDE.md, "Git and GitHub": the item "Merging" becomes
+### Where the text in force is
 
-```
-- **Merging** happens after kyukhin's "yes": `gh pr merge --rebase --delete-branch`,
-  then `git switch master` and `git pull --rebase`. The ruleset of `master`
-  allows no other method. Every commit of the task branch lands on `master` as
-  it is: the commit of the task, and one more for each round of fixes after
-  the PR was opened. Never `git merge` with a merge commit.
-```
+| File | Section | What it holds |
+|---|---|---|
+| `CLAUDE.md` | "The main principle"; "The dispatcher loop" | The review and the fold in the diagram and in the typical task cycle |
+| `CLAUDE.md` | "When to stop and wait for kyukhin", items 8 and 9 | The two stops: a secret in the branch; a defect in the fix |
+| `CLAUDE.md` | "Report after a task" | The lines "Review" and "GitHub check" (item 11) |
+| `CLAUDE.md` | "Git and GitHub": "PR.", "One task, one commit", "Merging", "kyukhin's comments on a PR" | Items 3 and 8 |
+| `CLAUDE.md` | "Review of a pull request", steps 1 to 6 | Items 4 to 7, 10 and 11 |
+| `CLAUDE.md` | "Standing permissions of kyukhin" | Commenting for the review (item 12); folding and force-pushing a task branch (item 8) |
+| `CLAUDE.md` | "What not to do", the last item | Item 9 |
+| `.claude/skills/committer/SKILL.md` | "Branch", the last item; "History", the last item; the report line `FOLDED MESSAGE` | The `fix:` commit, and what the dispatcher needs for the fold |
+| `.claude/skills/developer/SKILL.md` | "Before writing code", step 2; "Return from QA or from the review" | The developer reads "Review findings" and fixes only them |
 
-`.claude/skills/committer/SKILL.md`: the second sentence of the introduction
-becomes
+### Where the applied text differs from the proposal
 
-```
-Good git history in this project is linear: one task = one clean commit, plus
-one commit for each round of fixes after its PR was opened, and half a year
-later it is clear from them what changed and why.
-```
+The proposal was written for M1 and before kyukhin's answers.
 
-and in "History" the third item becomes
+1. "Git and GitHub" has a new item, "One task, one commit": the fold by the
+   dispatcher (`git reset --soft` to the base of the branch and one commit
+   with the message of the task's commit), the check that no file changed,
+   the push with `--force-with-lease`. The item "Merging" does not say that
+   every commit lands as it is.
+2. The fold is the dispatcher's. The M2 column of the proposal gave it to the
+   committer, with `git rebase -i --autosquash`; the committer's agent
+   definition forbids `rebase` and a force push.
+3. The typical task cycle ends with "fold into one commit" before the report,
+   and step 6 of "Review of a pull request" is "Fold and report": the
+   dispatcher waits neither for the `check` job nor for a review of the folded
+   commit.
+4. An answer and the line "Review" of the report name no commit: `Fixed:
+   <what changed>.` and "A fixed". The proposal had "Fixed in <hash>" in both.
+5. "kyukhin's comments on a PR": the new commit is folded before the next
+   report. Any other `--amend`, `rebase` or force push still needs kyukhin's
+   explicit request.
+6. "Standing permissions of kyukhin": the item about commenting reads "yes"
+   with kyukhin's words and has no fallback for a "no"; it ends with "Nothing
+   else is posted in kyukhin's name without asking." A second new item holds
+   the permission to fold and force-push a task branch.
+7. The committer's skill: the introduction keeps "one task = one clean
+   commit"; "Branch" asks for a `fix:` subject and for a word on the message
+   of the task's commit; "History" says that the dispatcher folds and
+   force-pushes before the merge; the report has the line `FOLDED MESSAGE`.
+8. `README.md`, "How it works", is unchanged: its "one branch
+   `kyukhin/NNN-slug` and one commit" is true under M2.
 
-```
-- A PR is merged by rebase, the only method the ruleset of `master` allows.
-  Every commit of the branch lands as it is, so a fix commit gets a message
-  as careful as the first one.
-```
-
-`README.md`, "How it works", says "one task is one branch `kyukhin/NNN-slug`
-and one commit"; under M1 it gets the same addition.
-
-### CLAUDE.md, "The main principle": the diagram becomes
-
-```
-CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: tasks ─►
-    ─► Developer ─► QA ─► Committer ─► PR ─► Review ─► (report to kyukhin) ─► PM …
-           ▲         │                          │
-           ├─ FAIL ──┘                          │
-           └──────────── defect ────────────────┘
-```
-
-### CLAUDE.md, "The dispatcher loop": the last paragraph becomes
-
-```
-A typical task cycle without kyukhin:
-developer → qa → (FAIL → developer → qa) → committer → PR → review →
-(defect → developer → qa → committer → push, once) → **stop, report**.
-```
-
-### CLAUDE.md, "When to stop and wait for kyukhin": two new items
-
-```
-8. **The review found a secret or personal data in the branch.** The branch
-   is public. Stop at once and tell kyukhin what is exposed and where; do not
-   start a fix round first.
-9. **The review found a defect in the commit that fixed its earlier findings**
-   (do not start a second fix round): show kyukhin the findings and offer
-   options.
-```
-
-### CLAUDE.md, "Report after a task": the template and the line after it become
-
-```
-✅ TASK-NNN <title> — PR #N, branch kyukhin/NNN-slug
-What changed: 1–3 lines in plain language.
-How to try it: if it is already possible, what to run and what to see; otherwise "nothing yet".
-QA: PASS on the first try / after N returns (the gist).
-Review: N findings: A fixed in <hash>, B recorded as draft tasks, C kept as is / no findings / not done: the reason.
-GitHub check: green / red: what failed / not finished.
-Spec: unchanged / changed: what and why.
-Notes for later: new draft tasks, if any appeared.
-Next: TASK-MMM <title> (role). Merge the PR and continue?
-```
-
-```
-No logs, diffs or retelling of the QA report or of the review threads: they
-are on the PR page, and kyukhin can ask for details.
-```
-
-### CLAUDE.md, "Git and GitHub": the item "PR." becomes
-
-```
-- **PR.** After the committer's report: `git push -u origin <branch>` and
-  `gh pr create` into `master`. The title is the first line of the commit, the
-  description comes from the committer's report. Then comes the review (see
-  "Review of a pull request"); the report to kyukhin follows it.
-```
-
-### CLAUDE.md, "Git and GitHub": a new subsection before "Standing permissions"
-
-```
-### Review of a pull request
-
-Every PR you open is reviewed by CodeRabbit before you report (ADR-0005). The
-review is a second line, like the `check` job of GitHub Actions: neither is
-required for a merge. QA on kyukhin's Mac decides, and kyukhin's "yes" merges.
-
-1. **See whether the review started.** Two minutes after opening the PR, or
-   after a push to it, look at the `CodeRabbit` check of the head commit. A
-   review in progress or finished: the bot started by itself, post nothing.
-   No check: comment `@coderabbitai review`. "Review rate limited": step 2.
-2. **Wait for the `CodeRabbit` check,** up to 15 minutes. "Finished": go on.
-   "Review rate limited": one review an hour is included; the bot's reply, or
-   `@coderabbitai rate limit`, says when the next one is available. Within 30
-   minutes: wait and ask once more. Later than that: there is no review.
-   Anything else, or nothing: ask once more and wait 10 minutes; then there is
-   no review. No review is not a stop: say it in the report, with the reason.
-3. **Read every finding:** the bot's review, its inline threads and its
-   comments. Put each into one class:
-   - **Secret:** a secret or personal data in the branch. Stop (rule 8).
-   - **Defect:** the change contradicts the spec, the task, an ADR or an
-     invariant, or is plainly wrong: a bug, a test that cannot fail, a command
-     that does not work.
-   - **Follow-up:** valid, but outside the acceptance criteria of the task.
-     It becomes a `draft` task proposal under "Notes for later".
-   - **Kept as is:** wrong, against a recorded decision, or a matter of taste
-     that the formatter and the checks own. You can give the reason in one
-     sentence, with a reference.
-
-   A finding that questions the spec or the architecture is sorted by the
-   architect. If you cannot name the class, it is a defect: never dismiss in
-   doubt.
-4. **Defects: one fix round.** Add a section "Review findings" to
-   `docs/qa/TASK-NNN.md` (the date, a link to each thread, what is wrong),
-   move the task back to `in-progress`, then developer → qa → committer: a new
-   commit in the same branch, then push. Look for the review of the new commit
-   once (steps 1 and 2); a defect in it is a stop (rule 9). In a PR with
-   documents only, a defect goes to the role that owns the document.
-5. **Answer and resolve every thread of the bot,** in English, in one or two
-   sentences, with no mention of Claude or AI: `Fixed in <hash>: <what
-   changed>.`, `Kept as is: <reason and reference>.` or `Recorded as a
-   follow-up.` Do not continue the exchange.
-6. **Report,** with the lines "Review" and "GitHub check". Do not wait for the
-   `check` job: give its state as it is. A red job is named to kyukhin, who
-   decides (spec E-01).
-```
-
-### CLAUDE.md, "Standing permissions of kyukhin": a new item
-
-The dispatcher writes the answer in after kyukhin gives it. Until then it reads
-"no".
-
-```
-- Commenting on a PR in kyukhin's name, for the review only (asking the bot
-  for a review it did not start, answering and resolving its threads):
-  **<yes or no>** (<the date, kyukhin's words>). While it is "no": put the
-  findings and the answers you propose into the report, and kyukhin asks
-  for a review the bot did not start.
-```
-
-### CLAUDE.md, "What not to do": a new item
-
-```
-- Do not apply the review bot's suggestions on GitHub, do not tick the boxes
-  in its comments, and do not ask it to change code or to approve a PR.
-```
-
-### `.claude/skills/committer/SKILL.md`, "Branch": the last item becomes
-
-```
-- A fix for kyukhin's comments or for review findings on an already open PR
-  is a new commit in the same task branch. Do not create a new branch, do not
-  `--amend`.
-```
-
-### `.claude/skills/developer/SKILL.md`
-
-In "Before writing code", step 2, the last sentence becomes:
-
-```
-If the task came back from QA or from the review of its PR, also
-`docs/qa/TASK-NNN.md`.
-```
-
-"Return from QA" becomes:
-
-```
-## Return from QA or from the review
-
-Fix only what the QA report points out, its section "Review findings"
-included, plus direct consequences. If you disagree with a finding, do not
-argue with code: write your argument into the notes and ask the PM/architect
-to judge.
-```
+Applied as proposed: the diagram of the pipeline, stop rules 8 and 9, the
+line "GitHub check" of the report and the sentence after its template, the
+item "PR.", the introduction and steps 1 to 4 of "Review of a pull request",
+the last item of "What not to do", and both changes of the developer's skill.
 
 ## Sources
 
@@ -512,7 +422,7 @@ to judge.
 - CodeRabbit docs, "Review commands": docs.coderabbit.ai/reference/review-commands (V5, V10)
 - CodeRabbit docs, FAQ, "Data Security": docs.coderabbit.ai/faq; "Caching": docs.coderabbit.ai/reference/caching; architecture overview: docs.coderabbit.ai/overview/architecture (V6)
 - CodeRabbit docs, "Configuration V2 reference": docs.coderabbit.ai/reference/configuration; "Migrate configuration to V3"; "Choose the configuration branch": docs.coderabbit.ai/configuration/branch (V7, V8, V14)
-- CodeRabbit docs, "CodeRabbit status check": docs.coderabbit.ai/pr-reviews/status-check; "Find out why a pull request wasn't reviewed": docs.coderabbit.ai/pr-reviews/missing-reviews; "Control when reviews run": docs.coderabbit.ai/pr-reviews/when-reviews-run (V9, V10)
+- CodeRabbit docs, "CodeRabbit status check": docs.coderabbit.ai/pr-reviews/status-check; "Find out why a pull request wasn't reviewed": docs.coderabbit.ai/pr-reviews/missing-reviews; "Control when reviews run": docs.coderabbit.ai/pr-reviews/when-reviews-run (V9, V10, V20)
 - CodeRabbit docs, "Code Guidelines": docs.coderabbit.ai/knowledge-base/code-guidelines (V11)
 - CodeRabbit docs, "Automatic Approvals": docs.coderabbit.ai/pr-reviews/automatic-approvals (V12)
 - CodeRabbit docs, "Set review strictness, tone and language": docs.coderabbit.ai/pr-reviews/review-style (V8, V13)
@@ -521,7 +431,32 @@ to judge.
 - GitHub Docs, "Plans for GitHub Copilot": docs.github.com/en/copilot/get-started/plans; GitHub changelog, 2026-06-01, "Updates to GitHub Copilot billing and plans" (V16)
 - Qodo docs, "Open source program": docs.qodo.ai/open-source-program (V17)
 - CodeRabbit docs, "How CodeRabbit resolves configuration": docs.coderabbit.ai/configuration/resolution (V18)
-- GitHub REST API, read on 2026-11-27: `repos/kyukhin/clam`, its rulesets and its pull request 1 (L1, L2, L10); `repos/kyukhin/dict-app`, its pull requests 370, 372, 376, 380 and 384 with their comments, reviews, timelines and check runs (L3 to L9)
+- CodeRabbit docs, "Configuration file": docs.coderabbit.ai/getting-started/yaml-configuration; the published schema of V2: coderabbit.ai/integrations/schema.v2.json (V19)
+- GitHub REST API, read on 2026-11-27: `repos/kyukhin/clam`, its rulesets and its pull request 1 (L1, L2, L10); `repos/kyukhin/dict-app`, its pull requests 370, 372, 376, 380 and 384 with their comments, reviews, timelines and check runs (L3 to L9, L11)
 
 ## History
 - 2026-11-27: proposed.
+- 2026-11-27: accepted by kyukhin ("1 yes", in answer to "Do you approve the
+  review decision and the spec of the epic?"). With the same message kyukhin
+  allowed the dispatcher to comment on pull requests in kyukhin's name for
+  the review ("2 yes"), gave Clam its `.coderabbit.yaml` ("3 yes") and chose
+  how fixes reach `master`: "4 we squash into one commit and force-push the
+  branch". That is M2; the architect had recommended M1.
+- 2026-11-27: aligned with these answers and with the kit text the dispatcher
+  applied the same day. The fold is a decision item of its own (item 8; the
+  items after it moved by one). Answers and the report name no commit. The
+  permission to comment is recorded as given. The comparison with LibreDict
+  and the consequences describe M2. The section "Proposed text for CLAUDE.md
+  and the skills" became "The kit text": the proposed wording is gone, and
+  the section says where the text in force is and where it differs from the
+  proposal. New facts V19, V20 and L11, a note on L10, and assumption A8
+  about the force push of a fold.
+- 2026-11-28: kyukhin decided that a fix is folded into the task's commit
+  before it is pushed, not before the report ("3 yes" to "Do I fold a fix
+  into the task's commit before pushing it, not before the report?"). The
+  reason is the hole the architect named in the applied text: a force push
+  after the answers starts the `check` job again and can bring one more
+  review. CLAUDE.md holds the text in force. Decision item 8, the consequence
+  "Every fold is one more push", assumption A8 and points 3 and 5 of the list
+  of differences still describe the earlier moment; they are aligned at the
+  architect's next call on this ADR.
