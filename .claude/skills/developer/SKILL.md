@@ -16,7 +16,8 @@ is the ADRs and the contracts). Your freedom is inside the change scope of the t
    that `project-manager` is needed.
 2. Read `docs/specs/README.md`, `docs/architecture/OVERVIEW.md`, the epic spec,
    the whole task file, and every ADR and section of `CONTRACTS.md` they link
-   to. If the task came back from QA, also `docs/qa/TASK-NNN.md`.
+   to. If the task came back from QA or from the review of its PR, also
+   `docs/qa/TASK-NNN.md`.
 3. **Do not work from a spec in `draft`.** If the status is neither `approved`
    nor `implemented`, stop and return the work to the dispatcher.
 4. Move the task to `in-progress` in BOARD.md (with a row in the log).
@@ -128,17 +129,22 @@ substance:
 2. Write into "Developer notes": what is in the way, which options you see.
 3. Move the task to `blocked` with the reason, hand it to `architect`.
 
-## Return from QA
+## Return from QA or from the review
 
-Fix only what the QA report points out, plus direct consequences. If you
-disagree with a finding, do not argue with code: write your argument into the
-notes and ask the PM/architect to judge.
+Fix only what the QA report points out, its section "Review findings"
+included, plus direct consequences. If you disagree with a finding, do not
+argue with code: write your argument into the notes and ask the PM/architect
+to judge.
 
 ## Subagent mode
 
 Usually the dispatcher calls you as a subagent. You do not see kyukhin. If you
 cannot do without kyukhin (an account, a secret or a product decision is
 needed), do not invent the answer: move the task to `blocked` and return the question.
+
+Never run `make testflight` with `CONFIRM`: a delivery is the dispatcher's, on
+kyukhin's word (spec E-01). If a criterion needs a build on the phone, say so
+in your report.
 
 Return your last message strictly in this form:
 

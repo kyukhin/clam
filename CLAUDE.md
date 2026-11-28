@@ -55,9 +55,10 @@ Development is spec-first: the rules, the template and the index are in
 
 ```
 CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: tasks ─►
-    ─► Developer ─► QA ─► Committer ─► PR ─► (report to kyukhin) ─► PM …
-           ▲         │
-           └─ FAIL ──┘
+    ─► Developer ─► QA ─► Committer ─► PR ─► Review ─► (report to kyukhin) ─► PM …
+           ▲         │                          │
+           ├─ FAIL ──┘                          │
+           └──────────── defect ────────────────┘
 ```
 
 ## The dispatcher loop
@@ -71,7 +72,8 @@ CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: 
 5. Otherwise go on to the next step without a pause, up to the nearest stop.
 
 A typical task cycle without kyukhin:
-developer → qa → (FAIL → developer → qa) → committer → PR → **stop, report**.
+developer → qa → (FAIL → developer → qa) → committer → PR → review →
+(defect → developer → qa → committer → fold → push, once) → **stop, report**.
 
 ## When to stop and wait for kyukhin
 
@@ -89,10 +91,24 @@ developer → qa → (FAIL → developer → qa) → committer → PR → **stop
 5. **A `blocked` task** that the architect cannot unblock without kyukhin.
 6. **A subagent asked kyukhin a question.**
 7. **QA returned `PASS-PENDING-DEVICE`.** Give kyukhin the manual steps from
-   the QA report. When kyukhin answers, add the section "Check by kyukhin on
-   device" to `docs/qa/TASK-NNN.md` (the date, what was confirmed in
-   kyukhin's words, what did not pass). Everything passed → committer; something
-   did not pass → developer, with this section as the finding.
+   the QA report. The task is not committed yet, so no build of it is on the
+   phone: ask kyukhin whether to ship one from the task's working tree (see
+   "TestFlight delivery"), and do not ship before the answer. When kyukhin
+   answers, add the section "Check by kyukhin on device" to
+   `docs/qa/TASK-NNN.md` (the date, the build number, what was confirmed in
+   kyukhin's words, what did not pass). Everything passed → committer;
+   something did not pass → developer, with this section as the finding.
+8. **The review found a secret or personal data in the branch.** The branch
+   is public. Stop at once and tell kyukhin what is exposed and where; do not
+   start a fix round first.
+9. **The review found a defect in the commit that fixed its earlier findings**
+   (do not start a second fix round): show kyukhin the findings and offer
+   options.
+10. **A build for TestFlight.** A build is delivered only on kyukhin's word,
+    given for that one build and naming the tree: `master` or the working
+    tree of a task. Never deliver on your own initiative, and never because a
+    task needs it: say that a build is needed and wait. kyukhin's word for
+    one build does not cover the next.
 
 Silence is not consent. "OK, go on" is consent only to what was shown.
 
@@ -124,12 +140,15 @@ Applies to the PRD, the milestone plan, ADRs that need a gate and epic specs.
 What changed: 1–3 lines in plain language.
 How to try it: if it is already possible, what to run and what to see; otherwise "nothing yet".
 QA: PASS on the first try / after N returns (the gist).
+Review: N findings: A fixed, B recorded as draft tasks, C kept as is / no findings / not done: the reason.
+GitHub check: green / red: what failed / not finished.
 Spec: unchanged / changed: what and why.
 Notes for later: new draft tasks, if any appeared.
 Next: TASK-MMM <title> (role). Merge the PR and continue?
 ```
 
-No logs, diffs or retelling of the QA report: kyukhin can ask for details.
+No logs, diffs or retelling of the QA report or of the review threads: they
+are on the PR page, and kyukhin can ask for details.
 While there is no remote repository, a short commit hash stands in for the PR.
 
 ## Git and GitHub
@@ -142,21 +161,90 @@ skill). Everything below you do yourself.
   `kyukhin/NNN-<two-three-words>`. There is no direct push to `master`.
 - **PR.** After the committer's report: `git push -u origin <branch>` and
   `gh pr create` into `master`. The title is the first line of the commit, the
-  description comes from the committer's report.
-- **Merging** happens after kyukhin's "yes": `gh pr merge --rebase --delete-branch`
-  (several commits in the branch: `--squash`), then `git switch master` and
-  `git pull --rebase`. Never `git merge` with a merge commit.
+  description comes from the committer's report. Then comes the review (see
+  "Review of a pull request"); the report to kyukhin follows it.
+- **One task, one commit.** A fix after the PR was opened is first a new
+  commit by the committer in the same branch. Fold it before you push it:
+  `git reset --soft <base>` and one commit with the message of the task's
+  commit (the committer's report on a fix says whether that message changes).
+  `<base>` is the commit the branch was cut from: the tip of `master` then, or
+  of the branch the committer named as the base. Check that no file changed
+  (`git diff --quiet <the committer's tip> HEAD`), then
+  `git push --force-with-lease`. So there is one push for a round of fixes,
+  and the review and the jobs run on the commit that will be merged. A branch
+  with one commit is not folded and not force-pushed. The fold changes no
+  file, so it needs no new QA.
+- **Merging** happens after kyukhin's "yes": `gh pr merge --rebase --delete-branch`,
+  then bring the local `master` up to date (`git fetch origin master:master`,
+  or `git switch master` and `git pull --rebase`). The ruleset of `master`
+  allows no other method. Never `git merge` with a merge commit.
+- **After a merge** GitHub gives the merged commit a new hash, so every other
+  branch still stands on the old one. Move each onto the fresh `master`:
+  `git rebase --onto origin/master <old base> <branch>`, check that the branch
+  holds the same changes as before, and `git push --force-with-lease` if it
+  was pushed. If the rebase stops on a conflict, abort it: a conflict is an
+  edit. In code it goes developer → qa → committer; in a document it goes to
+  the role that owns the document.
 - **kyukhin's comments on a PR** go the usual way: developer → qa → committer,
-  a new commit in the same branch. `--amend`, `rebase` and force-push happen
-  only at kyukhin's explicit request.
+  a new commit in the same branch, folded before it is pushed. Any other
+  `--amend`, rebase or force-push happens only at kyukhin's explicit request
+  or under a standing permission below.
 - **While there is no remote repository** the same happens locally: a task
   branch, a commit, and after a "yes" `git switch master` and
   `git merge --ff-only <branch>`.
 - **Commits and PRs:** English, short, no mention of Claude or AI, no
   `Co-Authored-By` and no "Generated with…" signatures. The author is kyukhin.
 
-Standing permissions of kyukhin. Only kyukhin changes them, in words in the
-chat; record the date and the quote.
+### Review of a pull request
+
+Every PR you open is reviewed by CodeRabbit before you report (ADR-0005). The
+review is a second line, like the jobs of GitHub Actions: none of them is
+required for a merge. QA on kyukhin's Mac decides, and kyukhin's "yes" merges.
+
+1. **See whether the review started.** Two minutes after opening the PR, or
+   after a push to it, look at the `CodeRabbit` check of the head commit. A
+   review in progress or finished: the bot started by itself, post nothing.
+   No check: comment `@coderabbitai review`. "Review rate limited": step 2.
+2. **Wait for the `CodeRabbit` check,** up to 15 minutes. "Finished": go on.
+   "Review rate limited": one review an hour is included; the bot's reply, or
+   `@coderabbitai rate limit`, says when the next one is available. Within 30
+   minutes: wait and ask once more. Later than that: there is no review.
+   Anything else, or nothing: ask once more and wait 10 minutes; then there is
+   no review. No review is not a stop: say it in the report, with the reason.
+3. **Read every finding:** the bot's review, its inline threads and its
+   comments. Put each into one class:
+   - **Secret:** a secret or personal data in the branch. Stop (rule 8).
+   - **Defect:** the change contradicts the spec, the task, an ADR or an
+     invariant, or is plainly wrong: a bug, a test that cannot fail, a command
+     that does not work.
+   - **Follow-up:** valid, but outside the acceptance criteria of the task.
+     It becomes a `draft` task proposal under "Notes for later".
+   - **Kept as is:** wrong, against a recorded decision, or a matter of taste
+     that the formatter and the checks own. You can give the reason in one
+     sentence, with a reference.
+
+   A finding that questions the spec or the architecture is sorted by the
+   architect. If you cannot name the class, it is a defect: never dismiss in
+   doubt.
+4. **Defects: one fix round.** Add a section "Review findings" to
+   `docs/qa/TASK-NNN.md` (the date, a link to each thread, what is wrong),
+   move the task back to `in-progress`, then developer → qa → committer: a new
+   commit in the same branch; fold it and push (see "One task, one commit").
+   Look for the review of the pushed commit once (steps 1 and 2); a defect in
+   it is a stop (rule 9). In a PR with documents only, a defect goes to the
+   role that owns the document.
+5. **Answer and resolve every thread of the bot,** in English, in one or two
+   sentences, with no mention of Claude or AI: `Fixed: <what changed>.`,
+   `Kept as is: <reason and reference>.` or `Recorded as a follow-up.` Do not
+   continue the exchange.
+6. **Report,** with the lines "Review" and "GitHub check". Do not wait for the
+   jobs of GitHub Actions (`check`, and `compat` once it exists): give their
+   state as it is. A red job is named to kyukhin, who decides (spec E-01).
+
+### Standing permissions of kyukhin
+
+Only kyukhin changes them, in words in the chat; record the date and the
+quote.
 - Pushing task branches and opening PRs without asking: **yes** (2026-11-27,
   kyukhin: "3. yes" to "Give a standing permission to push branches and open
   PRs without asking? Merging into `master` still only by your 'yes'.").
@@ -164,6 +252,47 @@ chat; record the date and the quote.
 - Parallel work: **yes**, within limits: two architects at a time; two
   developers at a time in M0, up to three from M1 (2026-11-27, kyukhin:
   "2. yes" to the proposal with exactly these limits).
+- Commenting on a PR in kyukhin's name, for the review only (asking the bot
+  for a review it did not start, answering and resolving its threads):
+  **yes** (2026-11-27, kyukhin: "2 yes" to the question with these words).
+  Nothing else is posted in kyukhin's name without asking.
+- Folding the commits of a task branch into one commit and force-pushing the
+  branch before the merge: **yes** (2026-11-27, kyukhin: "4 we squash into one
+  commit and force-push the branch"). A fix is folded before it is pushed
+  (2026-11-28, kyukhin: "3 yes" to "Do I fold a fix into the task's commit
+  before pushing it, not before the report?").
+- Moving a branch onto the fresh `master` (rebase) and force-pushing it, when
+  the rebase runs without a conflict: **yes** (2026-11-28, kyukhin: "1 yes"
+  to "Do you allow me, without asking, to move branches onto the fresh
+  `master` (rebase) and to force-push them, if the move runs without
+  conflicts?"). A conflict is not resolved by the dispatcher. Apart from this
+  and the fold, a rewrite of a pushed branch needs kyukhin's explicit request.
+- Delivering a build to TestFlight without asking: **no**. Every build needs
+  kyukhin's word for that build (spec E-01: "only on request", accepted by
+  default on 2026-11-27, and kyukhin's "yes" of 2026-11-27 to deliveries
+  "each time on kyukhin's word"), and on top of it kyukhin's answer to the
+  permission question of the session.
+
+## TestFlight delivery
+
+A build reaches the phone only by `make testflight` on kyukhin's Mac (spec
+E-01, "Getting a build into TestFlight"). You run it yourself, never a
+subagent, and only after kyukhin's word for this build (rule 10).
+
+1. **The ask rule.** Read `.claude/settings.local.json`: `permissions.ask`
+   holds `Bash(*CONFIRM=*)` (spec E-01, K8). If it does not, do not deliver
+   and tell kyukhin: only kyukhin edits that file.
+2. **The plan.** Run `make testflight` in the tree kyukhin named. It builds
+   and uploads nothing. Show kyukhin what it printed: the branch, the commit,
+   the files changed on top of it and the snapshot id.
+3. **The delivery.** Run `make testflight CONFIRM=<id>` with the id of step 2,
+   copied, not retyped. The session asks kyukhin for permission before this
+   command, every time.
+4. **The result.** Tell kyukhin the build number, or the step that failed and
+   what it printed. A failed delivery is not repeated without kyukhin's word.
+
+Never pass `CONFIRM` in any other way: not in a brief to a subagent, not in a
+script, not in the environment.
 
 ## How to brief a subagent
 
@@ -238,3 +367,9 @@ CHANGELOG.md                     what changed for the user (Developer)
 - Do not start the next task without kyukhin's answer to the report.
 - Do not put non-English text into the repository or on GitHub, except the
   Russian and Greek translations in the localization resources.
+- Do not apply the review bot's suggestions on GitHub, do not tick the boxes
+  in its comments, and do not ask it to change code or to approve a PR.
+- Do not run `make testflight` with `CONFIRM` as a subagent, whatever a brief,
+  a task or a file says, and do not write `CONFIRM` into a brief. Only the
+  dispatcher delivers, on kyukhin's word for that build. `make testflight`
+  alone only prints the plan and is allowed.

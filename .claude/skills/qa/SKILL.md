@@ -148,6 +148,11 @@ process is killed), give a verdict on everything else and list the manual steps
 for kyukhin. Such a task does not go to the committer until kyukhin
 confirms these steps.
 
+Never run `make testflight` with `CONFIRM`, not even to prove a criterion
+about the delivery: the dispatcher delivers, on kyukhin's word (spec E-01,
+C10 and C11). `make testflight` without `CONFIRM` prints the plan and uploads
+nothing; that form you may run.
+
 Return your last message strictly in this form:
 
 ```

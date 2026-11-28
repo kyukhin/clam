@@ -33,8 +33,12 @@ what changed and why.
 - The branch is cut from a fresh `master`. If the working tree is on another
   branch (the previous PR is not merged yet), do not switch; name the base in
   the report.
-- A fix for kyukhin's comments on an already open PR is a new commit in the
-  same task branch. Do not create a new branch, do not `--amend`.
+- A fix for kyukhin's comments or for review findings on an already open PR
+  is a new commit in the same task branch, with a `fix:` subject. Do not
+  create a new branch, do not `--amend`. The dispatcher folds it into the
+  task's commit before the merge, so say in your report whether the message
+  of the task's commit still describes the result, and give the full new
+  message if it does not.
 
 ## File hygiene
 
@@ -166,8 +170,10 @@ Task: TASK-021
 - The history of `master` is strictly linear. There are no merge commits and
   there never will be.
 - Never `git merge` into `master` and never `git pull` without `--rebase`.
-- A PR is merged by rebase (several commits in the branch: squash), not with a
-  merge commit.
+- A PR is merged by rebase, the only method the ruleset of `master` allows.
+  Before the merge the dispatcher folds the commits of the branch into the
+  task's commit and force-pushes the branch: one task is one commit on
+  `master`.
 
 ## What not to do without kyukhin's explicit "yes" in this conversation
 
@@ -176,6 +182,8 @@ Task: TASK-021
   deleting branches.
 - `--no-verify` and disabling hooks: never, even with consent. If a hook is in
   the way, that is a task to fix the hook.
+- `make testflight` with `CONFIRM`, a delivery to TestFlight: never, in any
+  mode. The dispatcher delivers.
 
 ## Subagent mode
 
@@ -190,6 +198,7 @@ Return your last message strictly in this form:
 ```
 RESULT: committed <short hash> in branch <name> (base: master | <branch>) | not committed (the reason)
 MESSAGE: the first line of the commit
+FOLDED MESSAGE: only for a fix commit: unchanged | the full new message of the task's commit
 PR: the whole description, ready text for the dispatcher
 FILES: the number of files, the key paths
 SPEC: unchanged | changed in the task | moved to implemented
