@@ -1,12 +1,12 @@
 # E-03: Automated code review and the first checks
 
-> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Tasks: none yet · Updated: 2026-11-27
+> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Tasks: TASK-001, TASK-002, TASK-003, TASK-004 · Updated: 2026-11-27
 
-Read first: ADR-0005 (the review and its place in the pipeline, `proposed`;
-this spec holds only if it is accepted as written), ADR-0001 (the toolchain and
-the localization paths), `docs/specs/E-01-project-skeleton.md` (approved
+Read first: `docs/architecture/OVERVIEW.md`, ADR-0005 (the review and its
+place in the pipeline; accepted 2026-11-27), ADR-0001 (the toolchain and the
+localization paths), `docs/specs/E-01-project-skeleton.md` (approved
 2026-11-27; it adds to what this epic creates, see "What moves from E-01 to
-E-03"). `docs/architecture/OVERVIEW.md` does not exist yet.
+E-03").
 
 ## Why
 
@@ -32,6 +32,7 @@ E-03 goes first in M0, before there is any Swift project.
 |---|---|---|
 | Checks on the PR page | None | Two: `check` (GitHub Actions) and `CodeRabbit` (the bot's own). Neither is required: the merge button works whatever they show |
 | Review | Nobody reads the PR before kyukhin | A comment of `coderabbitai` with a walkthrough, and inline threads in "Files changed". When kyukhin is asked to merge, every thread has an answer and is resolved |
+| Commits of a task | One | One, on the PR page when kyukhin is asked to merge and on `master` after the merge. A fix made after the PR was opened is a `fix` commit first; the dispatcher folds it into the task's commit and force-pushes the branch before the report (kyukhin, 2026-11-27; ADR-0005, item 8). The PR page keeps the force push in its timeline |
 | Title and description | The committer's text | The same. The bot edits neither, never approves, never requests changes, never commits |
 | Report in the chat | The line "QA" | Two more lines: "Review" and "GitHub check" (ADR-0005) |
 | Checking a change on the Mac | Commands copied from the skills | `make check` |
@@ -41,7 +42,8 @@ repository with fewer than 10 stars has to ask for every review (ADR-0005,
 V2); LibreDict, with 3 stars, is reviewed without asking (ADR-0005, L4). The
 step works either way: where the bot did not start, the PR also shows a
 comment `@coderabbitai review` from kyukhin's account, posted by the
-dispatcher (open question 1). The first review shows which case holds (C10).
+dispatcher with kyukhin's standing permission of 2026-11-27. The first review
+shows which case holds (C10).
 
 What the PR shows in each state:
 
@@ -51,7 +53,7 @@ What the PR shows in each state:
 | The bot did not start | Absent after 2 minutes | The dispatcher comments `@coderabbitai review` |
 | Review running | "Review in progress" | The dispatcher waits, up to 15 minutes; in LibreDict a review was published within 3 to 11 minutes |
 | No findings | "Finished" | Report: "Review: no findings" |
-| Findings | "Finished" | Sorted by ADR-0005: fixed in a new commit, recorded as a follow-up, or answered as kept as is |
+| Findings | "Finished" | Sorted by ADR-0005: fixed in a new commit that is folded into the task's commit before the report, recorded as a follow-up, or answered as kept as is |
 | The one review of the hour is used | "Review rate limited" | Asked once more if the next review is available within 30 minutes; otherwise the report says "Review: not done: rate limit" |
 | Bot silent, service down, or the App does not cover the repository | Absent, or "Review failed" | Asked once more; then the report says "Review: not done" with the reason |
 | `check` red | Unaffected | The report names the red job, and kyukhin decides (E-01) |
@@ -82,12 +84,22 @@ To take the bot off Clam: the same page, remove `clam` from the selected
 repositories.
 
 **When to do H1:** when the dispatcher says that the pull request with
-`.coderabbit.yaml` is open. From the moment the bot has access it can review,
-by itself, whatever is opened or pushed next (ADR-0005, L4). Without the file
-it works with the settings of kyukhin's account, as in LibreDict, where it
-appends its own block to the PR description (ADR-0005, L7, V18). That is
-harmless, but it cannot be taken back for that pull request. PR #1 is in this
-position if anything is pushed to it after H1.
+`.coderabbit.yaml` is open: the pull request of TASK-001. From the moment the
+bot has access it can review, by itself, whatever is opened or pushed next
+(ADR-0005, L4). Without the file it works with the settings of kyukhin's
+account, as in LibreDict, where it appends its own block to the PR
+description (ADR-0005, L7, V18). That is harmless, but it cannot be taken
+back for that pull request.
+
+On 2026-11-27 no pull request is open that H1 could affect: PR #1 is merged.
+The next pull requests are the dispatcher's document pull requests, then
+those of the tasks. Two kinds can be in the position above: a document pull
+request that is still open at H1 and is pushed to afterwards, and a task
+branch that was cut before `.coderabbit.yaml` reached `master`. The way to
+avoid both: the document pull requests are merged before H1, and the branch
+of every task after TASK-001 is cut from a `master` that holds the file. A
+pull request that misses this gets the bot's block in its description and
+findings of SwiftLint, and nothing worse.
 
 ### Decisions
 
@@ -110,7 +122,7 @@ position if anything is pushed to it after H1.
   without asking; merging needs kyukhin's "yes" (CLAUDE.md).
 - 2026-11-27 (E-01, approved): a red job on GitHub blocks nothing; the
   dispatcher names it to kyukhin and does not wait for a run.
-- 2026-11-27 (ADR-0005, proposed): the review runs after the PR is opened, is
+- 2026-11-27 (ADR-0005, accepted): the review runs after the PR is opened, is
   a second line, and its findings are sorted by the dispatcher.
 - 2026-11-27 (ADR-0001): Swift with no third-party code; the four localization
   paths; `swift format` is the linter.
@@ -135,9 +147,13 @@ position if anything is pushed to it after H1.
 - 2026-11-27 (architect): the workflow uses only GitHub's own actions, pinned
   to a commit, although the repository settings do not demand it.
 - 2026-11-27 (architect): Clam gets a `.coderabbit.yaml` with five values and
-  four instructions, although LibreDict has none (open question 2).
-- 2026-11-27 (architect): PR #1, opened before this epic with the planning
-  documents, is not reviewed unless kyukhin asks for it.
+  four instructions, although LibreDict has none (open question 2, which
+  kyukhin closed with "3 yes").
+- 2026-11-27 (architect): PR #1, with the planning documents, was merged on
+  2026-11-27, before the bot had access to `clam`; it got no review and gets
+  none. The same holds for the document pull requests the dispatcher opens
+  before TASK-001: until H1 the bot does not see the repository, and their
+  reports say "Review: not done" with that reason.
 - 2026-11-27 (kyukhin): "1 yes", in answer to "Do you approve the review
   decision and the spec of the epic?". ADR-0005 is accepted and this spec is
   approved.
@@ -154,6 +170,28 @@ position if anything is pushed to it after H1.
   and force-push a task branch for that purpose. ADR-0005 wrote its proposed
   text for M1; the dispatcher applies the kit text in the M2 wording, and the
   architect aligns ADR-0005 with it.
+- 2026-11-28 (kyukhin): "3 yes" to "Do I fold a fix into the task's commit
+  before pushing it, not before the report?". A fix is folded before it is
+  pushed, so the review and the `check` job run on the commit that will be
+  merged. CLAUDE.md holds the text in force; the places of this spec and of
+  ADR-0005 that say "before the report" are aligned at the architect's next
+  call on them.
+- 2026-11-28 (kyukhin), step 4 of C10: "4 yes" to "May I post one comment
+  `@coderabbitai configuration` on the PR of the first task in your name?".
+  The dispatcher posts this one comment.
+- 2026-11-27 (architect): the epic is cut into four tasks, and the first is
+  `.coderabbit.yaml` (TASK-001). H1 follows its pull request, so the pull
+  requests of the tasks that bring code are reviewed with Clam's settings.
+  TASK-002 brings the check tool, `make check` and the first check,
+  `whitespace`; TASK-003 the job on GitHub; TASK-004 the other three checks
+  and the rewritten `.gitignore`. Who covers the criteria that are no
+  developer task is said under "Test plan".
+- 2026-11-27 (architect): details fixed while the tasks were cut, each in its
+  place under "Design": what the checked set does with a deleted file and
+  with git's other exclude files; the form of a path, a line and a column in
+  the output; how a pattern of `tracked-files` matches and what its second
+  part reads; what a run of digits is in `secrets`; that a compiler warning
+  fails `make check`. None changes what kyukhin sees.
 
 ## Design
 
@@ -177,7 +215,10 @@ Tools/ClamChecks/          the check tool: a Swift package for macOS, with tests
 
 `make check` is the main line: it decides whether a task is done. It needs
 macOS, git and the Swift of the selected Xcode, and nothing else. It makes no
-network request.
+network request. It first prints the version of the Swift it runs with, and a
+compiler warning in the tool fails it: a green run, on the Mac or in the job
+on GitHub, shows which toolchain built the tool and that it built without a
+warning.
 
 ### The check tool
 
@@ -190,12 +231,17 @@ no dependencies. Swift language mode 6. It builds without warnings with Xcode
 - **The checked set:** every tracked file with its current content, and every
   untracked file that `.gitignore` does not exclude. This is what a commit of
   the working tree would hold, and the same set as the clean copy of E-01.
+  git decides what is excluded, as it does for `git status`: by the
+  `.gitignore` files, `.git/info/exclude` and the user's global excludes
+  file. A tracked file that is deleted in the working tree is not in the set.
 - **Text and binary:** a file with a NUL byte is binary. Its name and size are
   checked, its content is not. A symbolic link is checked by name only and is
   never opened.
 - **Output:** one line per violation, `path:line:column: check: message`,
   sorted by path and line; a violation about a whole file has no line and
-  column.
+  column. The path is relative to the root of the repository. Lines and
+  columns start at 1, and a column counts the bytes of its line. Violations
+  go to standard output, every other message to standard error.
 - **Exit status:** 0 with no violation, 1 with violations, 2 for a wrong call
   or when the directory is not in a git repository.
 - **Tests:** Swift Testing. Every fixture that breaks a check is built by the
@@ -246,12 +292,19 @@ An empty file passes. The check only reports; it rewrites nothing.
 
 2. `.gitignore` ignores a sample name of every pattern of the table. A line
    removed from `.gitignore` fails the check before any such file appears.
+   This part reads only the `.gitignore` in the root of the repository: a
+   pattern that only the user's global excludes file or `.git/info/exclude`
+   covers still fails, so the answer is the same on every machine.
 
-`.gitignore` is rewritten to hold exactly these patterns, by group. Its
-Android and Flutter lines (`local.properties`, `*.keystore`, `*.jks`, `build/`,
-`.gradle/`, `.idea/`, `*.iml`, `.dart_tool/`) go. A later spec that needs a
-larger file or a forbidden name changes the table, the tool and `.gitignore`
-in one commit.
+A pattern matches a path as git matches the same line of a `.gitignore` in
+the root of the repository.
+
+`.gitignore` is rewritten to hold exactly these patterns, by group; `#*#` is
+written `\#*#` there, because git reads a line that starts with `#` as a
+comment. Its Android and Flutter lines (`local.properties`, `*.keystore`,
+`*.jks`, `build/`, `.gradle/`, `.idea/`, `*.iml`, `.dart_tool/`) go. A later
+spec that needs a larger file or a forbidden name changes the table, the tool
+and `.gitignore` in one commit.
 
 **`secrets`.** In a text file, each of these is a violation:
 
@@ -260,6 +313,9 @@ in one commit.
 | S1 | A line that names the Telegram hash (`api_hash`, `apiHash`, `API-HASH`: any case, with `_`, `-`, a space or nothing between the words) and holds a run of exactly 32 hexadecimal digits |
 | S2 | A line that names the Telegram id (`api_id` in the same spellings) and holds a run of 5 to 10 decimal digits |
 | S3 | The header of a private key block: the text `-----BEGIN`, then nothing but capital letters and spaces, then `PRIVATE KEY-----` |
+
+A run is as long as it can be: 33 hexadecimal digits in a row are not a run
+of 32, and 11 decimal digits in a row are not a run of 5 to 10.
 
 The message names the kind of secret and never repeats the matched text: the
 log of the GitHub job is public. A line that only names `api_id` or `api_hash`
@@ -270,9 +326,12 @@ The check is not a general scanner. It covers what GitHub's scanner does not
 know (see "What GitHub's scanner does not see").
 
 The repository as it is on 2026-11-27 passes all four checks except for two
-things the first task removes: `docs/product/PRD.md` has no final line feed
-(one byte is added, no text changes), and the editor's lock and autosave files
-in `docs/plan/` are not ignored until `.gitignore` gets `.#*` and `#*#`.
+things the first task with a check, TASK-002, removes: `docs/product/PRD.md`
+has no final line feed (one byte is added, no text changes), and the editor's
+lock and autosave files in `docs/plan/` are not ignored until `.gitignore`
+gets `.#*` and `#*#`. TASK-002 adds these two lines and the two for the build
+output of the tool, `.build/` and `.swiftpm/`; TASK-004 rewrites the file
+together with the check that holds it in place.
 
 ### Checks on GitHub: the second line
 
@@ -330,9 +389,12 @@ What follows from these values:
 - **The ruleset bounds the review App.** The App can write code (ADR-0005,
   V4), and nothing reaches `master` except through a pull request that
   kyukhin merges. It binds kyukhin too: no direct push to `master`.
-- **Merges are by rebase only.** `gh pr merge --squash` is refused. CLAUDE.md
-  and the committer's skill still name it; ADR-0005 proposes the wording
-  (open question 3).
+- **Merges are by rebase only.** `gh pr merge --squash` is refused. One task
+  is still one commit on `master`: the dispatcher folds the commits of a task
+  branch into one and force-pushes the branch before it reports (kyukhin,
+  2026-11-27; ADR-0005, item 8; CLAUDE.md, "One task, one commit"). The
+  ruleset forbids a force push to `master` only, so a task branch can be
+  force-pushed.
 - **The repository does not demand GitHub's own, pinned actions.** The
   workflow of this epic meets that rule by its own constraints; QA and the
   review read every later change of it.
@@ -412,10 +474,13 @@ slightly different from LibreDict's.
 
 ### The kit
 
-The text of ADR-0005, "Proposed text for CLAUDE.md and the skills", is applied
-by the dispatcher after kyukhin accepts the ADR, as a change of documents
-with its own pull request. It is not a developer task. It includes the wording
-for merges by rebase only.
+The review step is in CLAUDE.md and in the committer's and the developer's
+skills. The dispatcher applied it on 2026-11-27, after kyukhin's answers, in
+the wording for one commit per task (M2). It is a change of documents, not a
+developer task: it lives in the branch `kyukhin/000-review-kit` and gets its
+own pull request. ADR-0005, "The kit text", says in which sections the text
+is and where it differs from what the ADR had proposed. C11 is kyukhin's
+reading of the diff of that pull request.
 
 ### What moves from E-01 to E-03
 
@@ -472,45 +537,65 @@ command-line tool (ADR-0005, option B); any change of the GitHub settings.
 ## Test plan
 
 Nothing in E-03 is checked on the phone. C10, C11 and C12 are checked by hand
-on GitHub.
+on GitHub, and none of them is a developer task: C10 and C12 are checked by
+kyukhin and the dispatcher on the pull request the table names, and C11 is the
+dispatcher's change of the kit, which kyukhin reads.
+
+Rows with more than one task. C5: TASK-002 proves the set, the links, the
+output and the exit statuses with `whitespace`; TASK-004 proves "by name and
+size" with `tracked-files`. C6: TASK-002 proves the three commands with the
+first check and Xcode 26.4; TASK-003 proves Xcode 27, by the `check` job;
+TASK-004 proves that `make lint` runs all four checks.
 
 | No. | Acceptance criterion | Task | Proved by |
 |---|---|---|---|
-| C1 | `language` fails on a Cyrillic and on a Greek letter in the content of a checked file and in its path; passes for the same letters under each of the four localization paths; passes on Latin text, digits, punctuation and symbols of other scripts; passes on the repository | — | tool tests, fixtures built at run time; the check on the repository |
-| C2 | `whitespace` fails on each of W1 to W6; passes on a tab in `Makefile` and on an empty file; passes on the repository, where `docs/product/PRD.md` now ends with one line feed and no other byte of it changed | — | tool tests; the check on the repository; QA compares the PRD with `master` |
-| C3 | `tracked-files` fails for a file of every pattern of the table when the file is tracked, and when it is untracked and not ignored; passes when git ignores it; fails on a file larger than 1 MiB; fails when `.gitignore` does not ignore a sample of a pattern. `.gitignore` holds the patterns of the table and no Android or Flutter line. The check passes on the repository | — | tool tests on temporary git repositories; QA reads `.gitignore` |
-| C4 | `secrets` fails on S1, S2 and S3; its output does not contain the matched value; it passes on lines that name `api_id` and `api_hash` without a value, and on the repository | — | tool tests, values built at run time; one test asserts the value is absent from the output |
-| C5 | The checked set is every tracked file and every untracked file that git does not ignore. An ignored file with a violation passes. A binary file is checked by name and size only. A symbolic link, a dangling one included, is not opened. Output lines have the form `path:line:column: check: message`. The exit status is 0, 1 or 2 as designed | — | tool tests on temporary git repositories |
-| C6 | `make lint` runs all four checks, prints the violations of all of them and exits with an error if any failed. `make check` runs `lint` and `test-tools` and passes on the repository with Xcode 26.4 and with Xcode 27, with no compiler warning. No stored file of the tool breaks a check | — | by hand by QA on the Mac: add one violation of each check, see four groups of lines and the error exit, remove them. Mutation: QA breaks one rule of each check and sees its test fail. Xcode 27: the `check` job |
-| C7 | `.github/workflows/ci.yml` runs the job `check` with the single command `make check` on `xcode-27`, for a pull request into `master` and a push to `master`. It meets every constraint of "Checks on GitHub" | — | QA reads the workflow. After the PR of the task is opened: the `check` job is green on it |
-| C8 | The repository settings are as the table of "GitHub settings" says, and this epic changed none | — | QA reads each back with `gh api` and lists the values in its report |
-| C9 | `.coderabbit.yaml` is in the root and holds the five values and the four instructions, and nothing else. The bot reads it without a warning | — | QA reads the file against the table. By hand, on the PR of the task: `@coderabbitai configuration` shows these values as coming from the file |
-| C10 | The first review. On the PR that adds `.coderabbit.yaml`, after H1, a review runs, by itself or on the comment, and the `CodeRabbit` check reaches "Finished" | — | by hand, kyukhin and the dispatcher, steps below |
-| C11 | CLAUDE.md, the committer's skill and the developer's skill hold the text of ADR-0005, "Proposed text", with the merge wording kyukhin chose | — | by hand: kyukhin reads the diff of the dispatcher's pull request |
-| C12 | A task PR opened after C11 goes through the whole step: the report has the lines "Review" and "GitHub check", and on the PR page every thread of the bot has an answer and is resolved | — | by hand, kyukhin, steps below |
+| C1 | `language` fails on a Cyrillic and on a Greek letter in the content of a checked file and in its path; passes for the same letters under each of the four localization paths; passes on Latin text, digits, punctuation and symbols of other scripts; passes on the repository | TASK-004 | tool tests, fixtures built at run time; the check on the repository |
+| C2 | `whitespace` fails on each of W1 to W6; passes on a tab in `Makefile` and on an empty file; passes on the repository, where `docs/product/PRD.md` now ends with one line feed and no other byte of it changed | TASK-002 | tool tests; the check on the repository; QA compares the PRD with `master` |
+| C3 | `tracked-files` fails for a file of every pattern of the table when the file is tracked, and when it is untracked and not ignored; passes when git ignores it; fails on a file larger than 1 MiB; fails when `.gitignore` does not ignore a sample of a pattern. `.gitignore` holds the patterns of the table and no Android or Flutter line. The check passes on the repository | TASK-004 | tool tests on temporary git repositories; QA reads `.gitignore` |
+| C4 | `secrets` fails on S1, S2 and S3; its output does not contain the matched value; it passes on lines that name `api_id` and `api_hash` without a value, and on the repository | TASK-004 | tool tests, values built at run time; one test asserts the value is absent from the output |
+| C5 | The checked set is every tracked file and every untracked file that git does not ignore. An ignored file with a violation passes. A binary file is checked by name and size only. A symbolic link, a dangling one included, is not opened. Output lines have the form `path:line:column: check: message`. The exit status is 0, 1 or 2 as designed | TASK-002, TASK-004 | tool tests on temporary git repositories |
+| C6 | `make lint` runs all four checks, prints the violations of all of them and exits with an error if any failed. `make check` runs `lint` and `test-tools` and passes on the repository with Xcode 26.4 and with Xcode 27, with no compiler warning. No stored file of the tool breaks a check | TASK-002, TASK-003, TASK-004 | by hand by QA on the Mac: add one violation of each check, see four groups of lines and the error exit, remove them. Mutation: QA breaks one rule of each check and sees its test fail. Xcode 27: the `check` job |
+| C7 | `.github/workflows/ci.yml` runs the job `check` with the single command `make check` on `xcode-27`, for a pull request into `master` and a push to `master`. It meets every constraint of "Checks on GitHub" | TASK-003 | QA reads the workflow. After the PR of the task is opened: the `check` job is green on it |
+| C8 | The repository settings are as the table of "GitHub settings" says, and this epic changed none | TASK-003 | QA reads each back with `gh api` and lists the values in its report |
+| C9 | `.coderabbit.yaml` is in the root and holds the five values and the four instructions, and nothing else. The bot reads it without a warning | TASK-001 | QA reads the file against the table. By hand, on the PR of the task: `@coderabbitai configuration` shows these values as coming from the file |
+| C10 | The first review. On the PR that adds `.coderabbit.yaml`, after H1, a review runs, by itself or on the comment, and the `CodeRabbit` check reaches "Finished" | no developer task; on the pull request of TASK-001 | by hand, kyukhin and the dispatcher, steps below |
+| C11 | CLAUDE.md, the committer's skill and the developer's skill hold the review step of ADR-0005 in the wording for one commit per task (M2), which kyukhin chose | no developer task; the dispatcher's change of the kit | by hand: kyukhin reads the diff of the dispatcher's pull request from the branch `kyukhin/000-review-kit` |
+| C12 | A task PR opened after C11 goes through the whole step: the report has the lines "Review" and "GitHub check", and on the PR page every thread of the bot has an answer and is resolved | no developer task; on the pull request of TASK-003 | by hand, kyukhin, steps below |
 
-C10, by hand:
+C10, by hand, on the pull request of TASK-001:
 
 1. The PR of the task that adds `.coderabbit.yaml` is open. The dispatcher
-   says so, and kyukhin does H1 and H2.
+   says so, and kyukhin does H1 and H2. Until H1 the bot does not see the
+   repository, so the dispatcher starts the review step after it, not before.
 2. If the `CodeRabbit` check has not appeared on the head commit 2 minutes
-   after H1, the review is asked with the comment `@coderabbitai review`: by
-   the dispatcher, or by kyukhin if open question 1 is answered "no".
+   after H1, the dispatcher asks for the review with the comment
+   `@coderabbitai review` (kyukhin's standing permission of 2026-11-27).
 3. Wait up to 15 minutes.
+4. For C9: the comment `@coderabbitai configuration` is posted on the same
+   PR, and the bot's reply is read against the table of "`.coderabbit.yaml`".
+   The standing permission covers asking for a review and answering threads,
+   not this command: kyukhin posts the comment, or tells the dispatcher to
+   post this one.
 
 Expected: the check `CodeRabbit` on the head commit shows "Finished". A comment
 of `coderabbitai` holds a walkthrough in English with the summary inside. The
 title and the description of the PR are unchanged: no block of the bot is
 appended. The PR has no approval and no "changes requested" from the bot, and
-the branch has no commit by the bot. No finding comes from SwiftLint.
+the branch has no commit by the bot. No finding comes from SwiftLint. For C9:
+the summary opens with no parsing warning and lists no unrecognized property
+(ADR-0005, V19), and the reply to `@coderabbitai configuration` names the file
+as the source of every value of the table.
 
-The dispatcher writes into `docs/qa/TASK-NNN.md` what ADR-0005 only assumes:
+The dispatcher writes into `docs/qa/TASK-001.md` what ADR-0005 only assumes:
 the number of reviews an hour that the bot's comment names for `clam` (A1)
 and the minutes from the comment to "Finished". Whether the bot starts by
 itself on `clam` (A1, A3) shows on the next pull request that is opened: the
-dispatcher records there whether the check appeared within 2 minutes.
+dispatcher records in the QA report of that task whether the check appeared
+within 2 minutes.
 
-C12, by hand, on the first task PR after C11:
+C12, by hand, on the pull request of TASK-003. It is the first task PR whose
+branch holds the workflow, so the first whose page can list both checks. If
+it gets no review, C12 is checked on the next task PR that gets one:
 
 1. kyukhin reads the report: it has a line "Review" with counts or a reason,
    and a line "GitHub check".
@@ -578,3 +663,28 @@ question 2 with (a), question 3 with (M2). See "Decisions".
   closed; question 3 with M2, against the recommendation, so the places of
   this spec and of ADR-0005 that assume separate fix commits on `master` are
   still to be aligned by the architect.
+- 2026-11-27: aligned with kyukhin's answers and with the accepted ADR-0005,
+  and cut into TASK-001 to TASK-004; the status stays `approved`. What
+  changed:
+  - "Read first" names the ADR as accepted and the OVERVIEW, which exists
+    now.
+  - One task is one commit: a new row "Commits of a task" under "On a pull
+    request", the row "Findings" of the state table, and "Merges are by
+    rebase only" under "GitHub settings" say that a fix commit is folded into
+    the task's commit before the report.
+  - The wording that depended on open question 1 is gone: the dispatcher
+    comments in kyukhin's name by the standing permission (the paragraph
+    about the bot starting by itself; C10, step 2).
+  - "The kit": the text is applied and lives in the branch
+    `kyukhin/000-review-kit`; C11 names that pull request and no longer a
+    "Proposed text", which ADR-0005 does not hold any more.
+  - PR #1 is merged: "When to do H1" and the decision about PR #1 say so and
+    name the pull requests that H1 can still affect.
+  - The test plan names the tasks, and says who covers C10, C11 and C12 and
+    which task proves which part of C5 and C6. C10 got a step 4 for the
+    by-hand part of C9, with what is expected there, and a sentence that the
+    review step starts after H1.
+  - The baseline: TASK-002 adds the final line feed of the PRD and four
+    lines of `.gitignore`; TASK-004 rewrites `.gitignore`.
+  - Details under "Design", listed in the last entry of "Decisions". None
+    changes what kyukhin sees.

@@ -2,16 +2,20 @@
 
 > Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Tasks: none yet · Updated: 2026-11-27
 
-Read first: ADR-0001 (stack) and ADR-0002 (modules), both accepted on
-2026-11-27. `docs/architecture/OVERVIEW.md` does not exist yet: the architect
-writes it before the first task and brings it up to date when this epic is
-implemented.
+Read first: `docs/architecture/OVERVIEW.md`; ADR-0001 (stack), ADR-0002
+(modules) and ADR-0005 (the review of every pull request), all accepted on
+2026-11-27; `docs/specs/E-03-automated-code-review.md`, the epic that goes
+first in M0. E-03 creates the `Makefile`, the check tool, `.gitignore` and the
+workflow, and this epic adds to them. The split is in the E-03 spec, "What
+moves from E-01 to E-03". Where this spec says "from E-03", that spec owns the
+text.
 
 ## Why
 
-Nothing can be built, tested or installed yet. Every later epic needs a project
-that builds, a place for each module, checks that hold the boundaries, and a
-way onto kyukhin's phone. E-01 covers no MVP item. It prepares:
+After E-03 the repository has its first checks, and still nothing of the app
+can be built, tested or installed. Every later epic needs a project that
+builds, a place for each module, checks that hold the boundaries, and a way
+onto kyukhin's phone. E-01 covers no MVP item. It prepares:
 
 - PRD §9: Clam is installed through TestFlight from the start.
 - PRD §3: a public repository; no third-party code that sends data anywhere.
@@ -43,12 +47,14 @@ English until E-06.
 
 ### On the Mac and on GitHub
 
+"Was" is the repository after E-03.
+
 | | Was | Now |
 |---|---|---|
-| Checking a change | Nothing to run | On kyukhin's Mac `make check` runs every check, and `make clean-check` runs the same on a clean copy of the repository. These two decide whether a task is done |
-| A pull request into `master` | No checks | GitHub starts two jobs by itself: `check` (Xcode 27) and `compat` (Xcode 26.6). They are a second, independent line: kyukhin sees their result on the pull request page, and it does not block the merge |
+| Checking a change | `make check` runs the four checks of E-03 and the tests of the check tool | On kyukhin's Mac `make check` runs every check: those of E-03, the formatting, the boundaries, the dependencies, the build, the tests and the Release archive. `make clean-check` runs the same on a clean copy of the repository. These two decide whether a task is done |
+| A pull request into `master` | One job, `check`, with the checks of E-03, and the review of ADR-0005 | GitHub starts two jobs by itself: `check` (Xcode 27), which runs the grown `make check`, and `compat` (Xcode 26.6). They are a second, independent line, as the review is: kyukhin sees their result on the pull request page and in the line "GitHub check" of the report after a task, and it does not block the merge |
 | A build on the phone | Not possible | `make testflight`, run on the Mac on kyukhin's word, puts a build of the tree it is run in into TestFlight |
-| The repository | Documents and the kit | An Xcode project, one Swift package, a check tool, a Makefile with its scripts, one workflow |
+| The repository | Documents, the kit and, from E-03, a Makefile, a check tool, one workflow and the settings of the review bot | Also an Xcode project, one Swift package, `Config/` and the scripts behind `make` |
 
 If the GitHub jobs are unavailable, slow or removed, no work stops: the checks
 on the Mac decide.
@@ -72,9 +78,9 @@ before its commit.
 5. When Apple has processed the upload, the build appears in the TestFlight app
    on the phone.
 
-Nothing is uploaded by a merge, on a schedule or from GitHub. The developer, QA
-and the committer never run the command with `CONFIRM`. kyukhin can run both
-commands in Terminal.
+Nothing is uploaded by a merge, on a schedule or from GitHub. Only the
+dispatcher runs the command with `CONFIRM`: the developer, QA, the committer
+and the architect never do. kyukhin can run both commands in Terminal.
 
 If a step fails, the command stops and names the step. The upload is the last
 step, so a failure before it sends nothing to Apple. If a file changed after
@@ -85,15 +91,16 @@ it.
 
 ### What kyukhin does by hand, once
 
-Nobody else can do K1 to K5, K7 and K8. K6 can be done by the dispatcher with
-`gh` after kyukhin says yes.
+Nobody else can do K1 to K5, K7 and K8. K6 is done.
 
 - **K1. The Mac.** Update macOS to 26.6 or a later 26.x (it is 26.5.2) and
-  install Xcode 27.x, before the first task; `xcode-select` points to Xcode 27.
-  Keep an Xcode 26.x next to it, because E-09 needs its Simulator: an update
-  through the App Store replaces Xcode 26, so rename the old `Xcode.app`
-  first. Do not move to macOS 27 before E-09 is done: Xcode 26, the only Xcode
-  with the CarPlay window in its Simulator, is not supported there (ADR-0001).
+  install Xcode 27.x, before the first task of this epic; `xcode-select`
+  points to Xcode 27. Keep an Xcode 26.x next to it, because E-09 needs its
+  Simulator: an update through the App Store replaces Xcode 26, so rename the
+  old `Xcode.app` first. Do not move to macOS 27 before E-09 is done: Xcode
+  26, the only Xcode with the CarPlay window in its Simulator, is not
+  supported there (ADR-0001). E-03 does not wait for K1: its tool builds with
+  the Xcode 26.4 the Mac has today.
 - **K2. The App ID.** developer.apple.com → Certificates, Identifiers &
   Profiles → Identifiers → new App ID, explicit, bundle id `com.kyukhin.Clam`,
   no capabilities.
@@ -117,25 +124,29 @@ Nobody else can do K1 to K5, K7 and K8. K6 can be done by the dispatcher with
   it serves as well: a team key is not bound to one app. Then copy
   `Config/Local.xcconfig.example` to `Config/Local.xcconfig` and fill in the
   team id, the profile name of K4, the key id and the issuer id.
-- **K6. GitHub.** In the repository settings:
-  - secret scanning and push protection are on already (checked on
-    2026-11-27) and stay on;
-  - a ruleset for `master` with "Require linear history" and no required
-    status check;
-  - Actions: only actions created by GitHub are allowed; the default workflow
-    token is read-only; a run for a pull request from a fork waits for
-    kyukhin's approval, whoever the author is;
+- **K6. GitHub.** Done on 2026-11-27; nothing is left to do. On kyukhin's
+  "yes. everything as in LibreDict" the dispatcher copied the settings of
+  `kyukhin/dict-app` to `kyukhin/clam`. In force:
+  - a ruleset `master`: no deletion, no force-push, a pull request required,
+    merges by rebase only, no required check;
+  - secret scanning and push protection on; Dependabot alerts and security
+    updates on;
+  - Actions: all actions allowed; the default workflow token is read-only;
+    the first run of a first-time contributor waits for kyukhin's approval;
   - there are no Actions secrets, variables or environments, and none is
-    created.
+    created. This rule is this spec's.
+
+  The table of the settings as they are is in the E-03 spec, "GitHub
+  settings", and E-03 reads them back (C8 there). This epic changes none.
 - **K7. TestFlight.** App Store Connect → the app → TestFlight → an internal
   group with kyukhin in it and automatic distribution on. Install the
   TestFlight app on the iPhone.
 - **K8. The agent session.** kyukhin adds the rule `Bash(*CONFIRM=*)` to
   `permissions.ask` in `.claude/settings.local.json` in the repository folder;
-  git ignores that file. From then on the session asks before every command
-  that carries a confirmation, whatever else is allowed, an "always allow" for
-  `make` included. An agent does not edit its own permissions: this edit is
-  kyukhin's.
+  git ignores that file (`.gitignore`, from E-03). From then on the session
+  asks before every command that carries a confirmation, whatever else is
+  allowed, an "always allow" for `make` included. An agent does not edit its
+  own permissions: this edit is kyukhin's.
 
 After K4 and K5 the private key of the certificate is only in the login
 keychain, and the `.p8` is only in `~/.appstoreconnect/private_keys/`. Both
@@ -233,27 +244,63 @@ them.
   rebase only, with no required check; Dependabot alerts and security updates
   on. The Actions settings were already the same in both repositories and stay
   so: all actions allowed, a read-only workflow token, runs of first-time
-  contributors wait for approval. This replaces the "Require linear history"
-  rule and the stricter Actions settings that K6 and C9 name; the architect
-  aligns their text. The workflow itself still uses only GitHub's own actions
-  pinned to a commit.
+  contributors wait for approval. This replaced the "Require linear history"
+  rule and the stricter Actions settings that K6 and C9 named; their text is
+  aligned (see "History"). The workflow itself still uses only GitHub's own
+  actions pinned to a commit.
+- 2026-11-27 (kyukhin): "CodeRabbit should be added right away, and the other
+  small checks too." (roadmap, E-03). The order of M0 is E-03, E-01, E-04,
+  E-02, and this spec was approved with the caveat that a part of the checks
+  moves to E-03 (see "History").
+- 2026-11-27 (architect): the split follows the E-03 spec, "What moves from
+  E-01 to E-03". E-03 creates the `Makefile` with `lint`, `test-tools` and
+  `check`, the check tool with `language`, `whitespace`, `tracked-files` and
+  `secrets`, `.gitignore`, and the workflow with the job `check`. This epic
+  adds the build, the tests, `swift format`, three commands of the tool
+  (`boundaries`, `dependencies`, `release-guard`), the clean copy, the
+  delivery and the job `compat`. It rewrites nothing that E-03 made.
+- 2026-11-27 (ADR-0005, accepted; CLAUDE.md, "Review of a pull request"):
+  every pull request is reviewed before the report after a task, and the
+  report gives the state of the GitHub jobs in its line "GitHub check", as it
+  is when the report is written. This is where the dispatcher names a red
+  job.
+- 2026-11-27 (architect), details of the seam; none changes what kyukhin sees
+  on the phone, runs on the Mac or reads on GitHub:
+  - `make lint` keeps the rule of E-03: every step runs even when another
+    failed;
+  - `swift format` covers every Swift file of the repository, the sources of
+    the check tool included;
+  - the `whitespace` check of E-03 gets an exception only for a file that
+    Xcode writes in its own format (see "Checks");
+  - fixtures are stored only for `boundaries` and `dependencies`;
+  - the time limits of the two jobs (see "Checks on GitHub");
+  - `.coderabbit.yaml` gets no path filter in this epic.
 
 ## Design
 
 ### Layout
+
+Created by this epic:
 
 ```
 Clam.xcodeproj/        the app target Clam and the UI test target
 App/                   the app target: entry point, assembly, Info.plist, icon
 UITests/               XCUITest
 Packages/ClamKit/      Package.swift, Sources/<Module>/, Tests/<Module>Tests/
-Tools/ClamChecks/      the check tool: a Swift package for macOS, with fixtures
 Config/                Base.xcconfig, Debug.xcconfig, Release.xcconfig,
                        Local.xcconfig.example, allowed-dependencies.txt
 scripts/               shell entry points used by make
-Makefile
-.github/workflows/     ci.yml
 .swift-format
+```
+
+From E-03, and what this epic does to each:
+
+```
+Makefile                   gets new targets and steps (see "Commands")
+Tools/ClamChecks/          gets three commands (see "Checks")
+.github/workflows/ci.yml   gets the job compat (see "Checks on GitHub")
+.gitignore                 unchanged
+.coderabbit.yaml           unchanged
 ```
 
 - The Xcode project is checked in and kept by hand; no generator is needed to
@@ -264,32 +311,43 @@ Makefile
   only) and `FeatureAbout` (the version model and the one screen; E-14 grows
   it into the About screen). Every other module arrives with its epic.
 - `Packages/ClamKit/Package.swift` declares no package dependencies.
-- `.gitignore` drops its Android and Flutter lines and gets: Xcode and SwiftPM
-  output (`DerivedData/`, `.build/`, `.swiftpm/`, `xcuserdata/`, `*.xcresult`,
-  `*.xcarchive`, `*.ipa`), signing material and local configuration
-  (`Config/Local.xcconfig`, `*.p12`, `*.p8`, `*.cer`, `*.mobileprovision`),
-  the local settings of the agent session (`.claude/settings.local.json`),
-  editor leftovers (`*~`, `#*#`, `.#*`). The lines about TDLib data stay.
+- `.gitignore` is E-03's and holds every pattern this epic needs: the output
+  of Xcode and SwiftPM, archives, signing material, `Config/Local.xcconfig`
+  and `.claude/settings.local.json`. A new kind of output gets its pattern in
+  the table of E-03 ("The four checks", `tracked-files`), in the tool and in
+  `.gitignore`, in one commit.
+- `.coderabbit.yaml` is E-03's, which leaves the filter for generated and
+  binary files to the epic that adds them. This epic adds none: the project
+  file is kept by hand and is reviewed like any other file.
 
 ### Commands
 
-| Command | What it does |
-|---|---|
-| `make build` | Builds the app, Debug, for the iOS Simulator |
-| `make test` | Runs the unit tests of `Packages/ClamKit` on a simulator |
-| `make ui-test` | Runs the UI tests on a simulator |
-| `make lint` | `swift format lint --strict`, then the first four checks of "Checks" |
-| `make format` | Rewrites the sources with `swift format` |
-| `make test-tools` | Runs the tests of the check tool, on macOS, without a simulator |
-| `make archive` | Makes a Release archive without signing |
-| `make check` | lint, test-tools, build, test, ui-test, archive: every check, in the tree it is run in |
-| `make clean-check` | Makes a clean copy (below) and runs `make check` in it |
-| `make testflight` | Prints what a delivery would ship and its snapshot id. Builds and uploads nothing |
-| `make testflight CONFIRM=<id>` | The delivery (below): guards, clean copy, checks, archive, manual signing, upload |
+The `Makefile` comes from E-03 with `lint`, `test-tools` and `check`. The table
+shows every command as it is when this epic is implemented.
+
+| Command | From | What it does |
+|---|---|---|
+| `make build` | E-01 | Builds the app, Debug, for the iOS Simulator |
+| `make test` | E-01 | Runs the unit tests of `Packages/ClamKit` on a simulator |
+| `make ui-test` | E-01 | Runs the UI tests on a simulator |
+| `make lint` | E-03, grows | `swift format lint --strict`, then every command of the check tool but the release guard: six (see "Checks"). As in E-03, every step runs even when another failed, and the exit is an error if any failed |
+| `make format` | E-01 | Rewrites the sources with `swift format` |
+| `make test-tools` | E-03 | Runs the tests of the check tool, on macOS, without a simulator |
+| `make archive` | E-01 | Makes a Release archive without signing |
+| `make check` | E-03, grows | lint, test-tools, build, test, ui-test, archive: every check, in the tree it is run in |
+| `make clean-check` | E-01 | Makes a clean copy (below) and runs `make check` in it |
+| `make testflight` | E-01 | Prints what a delivery would ship and its snapshot id. Builds and uploads nothing |
+| `make testflight CONFIRM=<id>` | E-01 | The delivery (below): guards, clean copy, checks, archive, manual signing, upload |
 
 The simulator is picked by a script from the ones installed: an iPhone on the
 newest iOS runtime. No device name is written into the Makefile or the
 workflow. The Xcode is the one `xcode-select` points to, or `DEVELOPER_DIR`.
+From the first task of this epic that is Xcode 27 (K1).
+
+`swift format` covers every Swift file of the repository: the app, the UI
+tests, `Packages/` and `Tools/ClamChecks`. E-03 writes the tool before
+`.swift-format` exists, so the task that adds the formatter runs `make format`
+on the tool's sources once.
 
 ### The clean copy
 
@@ -300,8 +358,10 @@ workflow. The Xcode is the one `xcode-select` points to, or `DEVELOPER_DIR`.
    git would commit from the working tree now: every tracked file with its
    current content and every new file that `.gitignore` does not exclude.
    Ignored files, `Config/Local.xcconfig` and build output among them, are
-   not there. The working tree and its index are not touched. The copy is a
-   git repository because the checks ask git which files are tracked;
+   not there. The working tree and its index are not touched. These are the
+   files the check tool reads in the working tree (E-03, "The check tool",
+   the checked set). The copy is a git repository because the tool asks git
+   for that set;
 3. runs `make check` there, with the build output inside that directory and an
    environment reduced to `HOME`, `USER`, `TMPDIR`, `DEVELOPER_DIR` and
    `PATH=/usr/bin:/bin:/usr/sbin:/sbin`;
@@ -339,40 +399,76 @@ same files give the same id.
 
 ### Checks
 
-`Tools/ClamChecks` is a command-line tool written in Swift with no
-dependencies. It has five commands; each has tests on fixtures. `make lint`
-runs the first four.
+`Tools/ClamChecks` comes from E-03: the package, the executable `clam-checks`
+with no dependencies, the checked set, the output format, the exit statuses
+and four commands, `language`, `whitespace`, `tracked-files` and `secrets`
+(E-03, "The check tool" and "The four checks"). This epic adds three commands,
+each with tests; the tool then has seven. The new commands use the same
+output format and exit statuses and read only files of the checked set.
+`make lint` runs all but `release-guard`.
 
-1. **Boundaries:** the rules of ADR-0002, "How violations are caught".
-2. **Language:** no Cyrillic or Greek letter in a tracked file outside the
-   localization paths of ADR-0001.
-3. **Dependencies:** every dependency declared by a `Package.swift` or by the
+1. **`boundaries`:** the rules of ADR-0002, "How violations are caught".
+2. **`dependencies`:** every dependency declared by a `Package.swift` or by the
    Xcode project is listed in `Config/allowed-dependencies.txt`. The file is
-   empty in E-01.
-4. **Tracked files:** git tracks no signing material and no local
-   configuration (the patterns of `.gitignore` above).
-5. **Release guard:** the conditions of a delivery; see "TestFlight delivery".
+   empty in E-01. GitHub's own actions in the workflow run only on GitHub's
+   runner and get no line (E-03).
+3. **`release-guard`:** the conditions of a delivery; see "TestFlight delivery".
+
+On the repository `boundaries` and `dependencies` read the Xcode project,
+`App/`, `UITests/`, the packages under `Packages/` and the manifest of the
+tool. They do not read the fixtures under the tests of the tool.
+
+**Fixtures.** The rule of E-03 stands: a fixture that breaks one of its four
+checks is built by the test at run time. The fixture packages of `boundaries`
+(ADR-0002) and the fixtures of `dependencies` break none of the four and are
+stored under the tests of the tool. The tests of `release-guard` build
+temporary git repositories.
+
+**What this epic changes in the checks of E-03.** `language` and `secrets`:
+nothing. `tracked-files`: nothing, unless a new kind of output appears (see
+"Layout"). `whitespace` gets exceptions, which E-03 leaves to this epic: only
+for a file that Xcode writes in its own format, by a path pattern, and only
+for the rule that the file breaks. A file written by hand gets none. Known on
+2026-11-27: the project file, `*.pbxproj`, is indented with tabs (W2). The
+task that creates the project, the Info.plist, the String Catalog and the
+asset catalog runs `whitespace` on them as Xcode 27 writes them and adds what
+else they need. Each exception has a tool test and a line in "History".
 
 ### Checks on GitHub: the second line
 
-`.github/workflows/ci.yml`, on every pull request into `master` and on every
-push to `master`:
+`.github/workflows/ci.yml` comes from E-03 with its triggers (every pull
+request into `master`, every push to `master`), the job `check`, the read-only
+permissions, `actions/checkout` pinned to a commit, and the cancelling of an
+older run (E-03, "Checks on GitHub: the second line"). Every constraint
+written there still holds. This epic changes three things:
 
-- `check`, on the runner `xcode-27`: `make check`.
-- `compat`, on the runner `macos-26` with Xcode 26.6: `make build test`.
+- `check`, on the runner `xcode-27`, still runs the single command
+  `make check`, which now holds every check. Its time limit grows from 15 to
+  30 minutes.
+- A new job `compat`, on the runner `macos-26` with Xcode 26.6:
+  `make build test`, with a time limit of 20 minutes. It builds and tests the
+  app and `Packages/ClamKit` only. From the first task of this epic no check
+  builds the tool with Xcode 26: the line of E-03 about Xcode 26.4 describes
+  the Mac before K1.
+- Both jobs keep the test results of a failed run with
+  `actions/upload-artifact`, GitHub's own action, pinned to a full commit
+  hash.
+
+The two time limits are first numbers. The task that sees the first runs
+corrects them, with a line in "History".
 
 The workflow calls the same `make` targets as the Mac and holds no logic of
-its own. It has read-only permissions and reads no secrets: the repository has
-none. It uses only GitHub's own actions (`checkout`, `upload-artifact` for the
-test results of a failed run), pinned to a commit. A newer run for the same
-pull request cancels the older one. Both runners are free for a public
-repository (ADR-0001, V11).
+its own. It reads no secrets: the repository has none. Both runners are free
+for a public repository (ADR-0001, V11).
 
 A pull request from a fork can rewrite the workflow it runs. With no secret
-and a read-only token such a run can take nothing; it can only use the runner,
-and it starts after kyukhin's approval (K6).
+and a read-only token such a run can take nothing; it can only use the runner.
+GitHub asks kyukhin to approve only the first run of a first-time contributor
+(E-03, "GitHub settings").
 
-Neither job is required for a merge, and no later task waits for a run.
+Neither job is required for a merge, and no task waits for a run. The report
+after a task gives the state of the jobs as it is; a red job is named to
+kyukhin, who decides (see "Decisions").
 
 ### What the Mac does not prove
 
@@ -462,38 +558,44 @@ The delivery command takes one argument, a snapshot id. No password, key or
 token is typed or passed in the environment, so none lands in the shell
 history.
 
-Three things keep signing files out of git: `.gitignore`; the tracked-files
+Three things keep signing files out of git: `.gitignore`; the `tracked-files`
 check, which runs in `make check` before every commit; and GitHub's secret
 scanning with push protection as the last line, for tokens in formats GitHub
-recognizes. Key and certificate files are guarded by the first two.
+recognizes. Key and certificate files are guarded by the first two. Both come
+from E-03; its section "What GitHub's scanner does not see" lists every line,
+the `secrets` check and the review among them.
 
 ### Not in E-01
 
-The `MediaSource` contract and the fake source (E-02); the code review tool
-(E-03); the license and the README (E-04); the retro look and the real icon
-(E-05); Russian and Greek (E-06); background audio (E-08); the CarPlay scene
-and entitlement (E-09); TDLib (M2); the privacy manifest, which arrives with
-the first API that requires one; the store listing and App Review (E-15).
+The `MediaSource` contract and the fake source (E-02); the review and the
+first checks (E-03); the license and the README (E-04); the retro look and
+the real icon (E-05); Russian and Greek (E-06); background audio (E-08); the
+CarPlay scene and entitlement (E-09); TDLib (M2); the privacy manifest, which
+arrives with the first API that requires one; the store listing and App
+Review (E-15).
 
 ## Test plan
+
+C6 and C8 moved to E-03 whole, and so did a part of C9. Their rows keep their
+numbers and name the criteria of E-03 that replaced them.
 
 | No. | Acceptance criterion | Task | Proved by |
 |---|---|---|---|
 | C1 | `make clean-check` passes on the repository: in a clean copy, without `Config/Local.xcconfig` and with Xcode 27 as the only tool outside macOS, every step of `make check` passes | — | by hand by QA: the command and its output. Second line: the `check` job on a fresh GitHub runner |
 | C2 | `make test` runs the unit tests of every module of `Packages/ClamKit` on a simulator and exits with an error when a test fails | — | unit: the tests of the version model; by hand by QA: break one assertion and see the error exit |
 | C3 | `make ui-test` starts the app in a simulator and finds the three lines of the screen | — | UI test |
-| C4 | `make lint` exits with an error on a formatting violation and passes on the repository. `make check` includes it | — | by hand by QA: add a violation and see the error exit of both commands |
+| C4 | `make lint` runs `swift format lint --strict` before the commands of the check tool, exits with an error on a formatting violation and passes on the repository. As in E-03, every step runs even when another failed. `make check` includes it | — | by hand by QA: add a formatting violation and a violation of one check of E-03, see both reported by one run of `make lint`, and the error exit of `make lint` and of `make check` |
 | C5 | The boundary check fails on each of: a library target with a `Source…` or `Skin…` module in its dependency closure; `ClamKit` depending on the Telegram package; an import the layer table forbids; SwiftUI, UIKit or CarPlay imported by a core module; `@_exported import`. It passes on the repository | — | tool tests: one fixture per case and a clean fixture |
-| C6 | The language check fails on a Cyrillic or a Greek letter in a tracked file outside the localization paths, and passes on the repository | — | tool tests on fixtures |
+| C6 | Moved to E-03 whole: the `language` check is C1 there. Nothing is checked under this number in E-01 | — | E-03, C1 |
 | C7 | The dependency check fails on a dependency that is not in `Config/allowed-dependencies.txt`. The file is empty and the app links no third-party code | — | tool tests on fixtures; the check on the repository |
-| C8 | The tracked-files check fails when git tracks `Config/Local.xcconfig`, `*.p12`, `*.p8`, `*.cer`, `*.mobileprovision`, `*.xcarchive` or `*.ipa`. `.gitignore` lists them and has no Android or Flutter lines | — | tool tests on fixtures; QA reads `.gitignore` |
-| C9 | `.github/workflows/ci.yml` runs `check` and `compat` as described in "Checks on GitHub" on a pull request into `master` and on a push to `master`. It has read-only permissions, names no secret and uses only GitHub's own actions pinned to a commit. The repository has no Actions secrets, variables or environments. Secret scanning and push protection are on. The ruleset of `master` requires linear history and no status check | — | QA reads the workflow and asks GitHub with `gh` for the secrets, variables, environments, Actions settings, security settings and rulesets (K6 is done before this row is checked). After the pull request of the task is opened: the dispatcher sees both jobs green before it asks kyukhin to merge; a red job returns the task to the developer |
+| C8 | Moved to E-03 whole: the `tracked-files` check and `.gitignore` are C3 there, with a wider list of patterns and a size limit. Nothing is checked under this number in E-01 | — | E-03, C3 |
+| C9 | When this epic is implemented, `.github/workflows/ci.yml` runs two jobs on a pull request into `master` and on a push to `master`: `check`, with the single command `make check`, which now holds every check, on `xcode-27`; and `compat`, with `make build test`, on `macos-26` with Xcode 26.6. `actions/upload-artifact` is GitHub's own action, pinned to a full commit hash. Every constraint of E-03, "Checks on GitHub", still holds for the file. The permissions, the secrets, the pinned checkout and the repository settings moved to E-03: C7 and C8 there | — | QA reads the workflow against this spec and against E-03, "Checks on GitHub". After the pull request of the task is opened: both jobs green on it prove the row. The dispatcher reads their state when it writes the report and does not wait for a run; a job that is red or not finished is named in the line "GitHub check" of the report, and kyukhin decides whether the task goes back to the developer |
 | C10 | `make testflight` without `CONFIRM` prints the plan and the snapshot id and builds and uploads nothing. With `CONFIRM` it refuses, before anything is built, and names the reason in each case of "TestFlight delivery", step 1. Otherwise it makes a clean copy, stops if a check fails in it, archives Release with the UTC time as the build number, signs manually, uploads and removes the copy. The scripts do not read, copy or print the key file, and `Config/Local.xcconfig` does not enter the copy | — | tool tests on temporary git repositories: one per refusal, one clean case, the same id for the same files and another id after a change; by hand by QA: `make testflight` prints the plan and leaves no archive; QA reads the scripts. QA does not run the command with `CONFIRM` |
 | C11 | A delivery puts a build into TestFlight; Clam installs from there and shows its screen | — | by hand, kyukhin and the dispatcher, see below |
 | C12 | The clean copy holds every tracked file and every new file git does not ignore, with their current content, and no ignored file. `make clean-check` leaves the working tree and its index as they were. When a check fails in the copy, it exits with an error, keeps the copy and prints its path | — | by hand by QA: with an ignored file and a new unformatted Swift file in the tree, run the command, look into the kept copy and compare `git status` before and after |
 
-C11, by hand, after K1 to K8, on the tree of the task that adds the delivery,
-before its commit:
+C11, by hand, after K1 to K5, K7 and K8 (K6 is done), on the tree of the task
+that adds the delivery, before its commit:
 
 1. kyukhin tells the dispatcher to ship a build. The agent session asks for
    permission before the command with `CONFIRM`; kyukhin allows the one run.
@@ -564,3 +666,35 @@ Question 5 is closed with option (a), by kyukhin's "yes" of 2026-11-27:
   follow LibreDict's and are in place (see "Decisions"). Still to be done by
   the architect, without a change of the app's behavior: the text of K6 and
   C9, and the seam with E-03.
+- 2026-11-27: aligned by the architect with what was decided after the rework.
+  The status stays `approved`: the edits follow kyukhin's decisions and the
+  caveat of the approval. Beyond those decisions nothing changes in what
+  kyukhin sees on the phone, runs on the Mac or reads on GitHub.
+  - The seam with E-03 (its section "What moves from E-01 to E-03"). E-03
+    creates the `Makefile`, the check tool with `language` and
+    `tracked-files`, `.gitignore` and the workflow with the job `check`; this
+    spec now says what it adds to them. Changed: "Read first", the first
+    sentence of "Why", the "Was" column of "On the Mac and on GitHub",
+    "Layout", "Commands", "Checks", "Checks on GitHub", one sentence of "The
+    clean copy" and of "Secrets and signing material", "Not in E-01". Four
+    entries of "Decisions" are new, and the entry about the GitHub settings
+    says that K6 and C9 are aligned. C6 and C8 moved to E-03 whole (C1 and
+    C3 there), and the permissions, the secrets, the pinned checkout and the
+    repository settings of C9 (C7 and C8 there). The rows keep their numbers.
+  - K6 is recorded as done, with the settings in force. C9 no longer names a
+    linear-history rule. A fork run waits for kyukhin's approval only when it
+    is the first run of a first-time contributor, not every time.
+  - A red job. C9 said that a red job returns the task to the developer and
+    that the dispatcher sees both jobs green before it asks to merge. It now
+    follows the decision of this spec: the dispatcher names the job in the
+    report, kyukhin decides, and nobody waits for a run.
+  - K1 is needed before the first task of this epic, not before E-03.
+  - The architect is named among those who never run the delivery with
+    `CONFIRM`.
+  - New details, all the architect's: the command names `boundaries`,
+    `dependencies` and `release-guard`; `make lint` keeps running every step
+    after a failure (C4); which paths `boundaries` and `dependencies` read
+    and where their fixtures live; the exceptions of `whitespace` for files
+    that Xcode writes; the formatter covers the sources of the tool; the time
+    limits of the two jobs, 30 and 20 minutes; no path filter in
+    `.coderabbit.yaml`.

@@ -72,7 +72,7 @@ Assumed, not verified:
 | A4 | The Simulator of Xcode 26.x shows an app in its CarPlay window when the entitlement is only in the entitlements file and Apple has not granted it. | E-09 |
 | A5 | XCUITest cannot drive the car screen. | E-09 |
 | A6 | An app with the SwiftUI life cycle can declare the CarPlay scene in its Info.plist. | E-09 |
-| A7 | kyukhin's iPhone is an iPhone 11 or later and runs iOS 26 or later. | kyukhin's answer, see E-01 open questions |
+| A7 | kyukhin's iPhone is an iPhone 11 or later and runs iOS 26 or later. | Answered on 2026-11-27 (kyukhin): the phone is "a 16, it seems, with a fresh OS" (E-01, "Decisions"). An iPhone 16 is later than the iPhone 11, and "a fresh OS" is read as iOS 26 or later: the minimum iOS 26.0 stands. Both are seen on the phone itself when the first TestFlight build installs (E-01, C11) |
 | A8 | What is said below about Flutter, React Native and Kotlin Multiplatform beyond V14 to V16 comes from general knowledge of these stacks, not from a check made today. | Not needed unless the choice changes |
 
 ## Options
@@ -241,3 +241,5 @@ What appears:
   no longer say that a GitHub workflow builds the binary: where it is built is
   left to the ADR before E-10. New consequence: "One Mac decides". The status
   stays `accepted`: this is the change the acceptance came with.
+- 2026-11-27: assumption A7 is marked as answered, with kyukhin's words about
+  the phone as E-01 records them. No decision changes.
