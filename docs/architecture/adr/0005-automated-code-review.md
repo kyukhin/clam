@@ -173,17 +173,18 @@ kyukhin's choice, against the architect's recommendation.**
    |---|---|---|
    | Secret | A secret or personal data is in the branch | Stop at once and tell kyukhin: the branch is public, so the secret is already out |
    | Defect | The change contradicts the spec, the task, an ADR or an invariant of CLAUDE.md, or is plainly wrong: a bug, a test that cannot fail, a command that does not work | One fix round, item 7 |
-   | Follow-up | Valid, but outside the acceptance criteria of the task | A proposal for a `draft` task under "Notes for later" |
+   | Follow-up | Valid, but outside the acceptance criteria of the task | Recorded on GitHub: a line in the follow-ups issue of the epic, or a new issue. "Notes for later" names it |
    | Kept as is | Wrong, against a recorded decision, or a matter of taste that the formatter and the checks own | An answer with the reason and a reference |
 
    A finding that questions the spec or the architecture is sorted by the
    architect. A finding the dispatcher cannot place with a reason of one
    sentence is a defect: nothing is dismissed in doubt.
-7. **One fix round.** The dispatcher adds a section "Review findings" to
-   `docs/qa/TASK-NNN.md` (the date, a link to each thread, what is wrong) and
-   moves the task back to `in-progress`. Then developer → qa → committer: a
-   new commit in the same branch, with a `fix:` subject, pushed by the
-   dispatcher. This is the path kyukhin's own comments on a PR already take.
+7. **One fix round.** The dispatcher adds a section "Review findings" (the
+   date, a link to each thread, what is wrong) to the QA report of the
+   ticket, `docs/qa/NNNN.md`, where NNNN is the number of the ticket's issue.
+   Then developer → qa → committer: a new commit in the same branch, with a
+   `fix:` subject, pushed by the dispatcher. This is the path kyukhin's own
+   comments on a PR already take.
    The dispatcher looks for a review of the new commit once, by items 4 and
    5; within the hour after the first review there is none (L5), and QA's
    check of the fix stands. A defect found in the fix commit is a stop:
@@ -324,7 +325,8 @@ Not affected:
 
 What appears:
 - The spec `docs/specs/E-03-automated-code-review.md`: the installation step,
-  the settings file, the first checks; its tasks are TASK-001 to TASK-004.
+  the settings file, the first checks; its tickets are #35 to #38, T1 to T4
+  in the spec (formerly TASK-001 to TASK-004).
 - The review step in CLAUDE.md and in the committer's and the developer's
   skills. The dispatcher applied it on 2026-11-27 (see "The kit text"
   below). Agents do not edit the kit on their own.
@@ -460,3 +462,14 @@ the last item of "What not to do", and both changes of the developer's skill.
   "Every fold is one more push", assumption A8 and points 3 and 5 of the list
   of differences still describe the earlier moment; they are aligned at the
   architect's next call on this ADR.
+- 2026-11-28: the plan and the tasks moved from files of the repository to
+  GitHub, on kyukhin's words: "This does not fit, it is all wrong. We must
+  work by milestones, epics and tasks in them." References are updated, with
+  no change of the decision; the status stays `accepted`. Item 7 names the QA
+  report of a ticket, `docs/qa/NNNN.md`, and no longer moves a status in a
+  file: the state of a ticket is the state of its issue. The follow-up of item
+  6 is recorded on GitHub, as CLAUDE.md says now, and is no longer a proposal
+  for a `draft` task. "What appears" names the tickets of E-03.
+  "Context" and "Options" cite the roadmap as it was on 2026-11-27. It is no
+  file any more: its milestones and epics are on GitHub, E-03 as issue #8.
+  The fold of a fix is still to be aligned, as the line above says.

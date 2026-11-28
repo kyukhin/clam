@@ -31,28 +31,37 @@ What becomes easier, what becomes harder, which tasks appear.
 - YYYY-MM-DD: accepted by kyukhin ("kyukhin's words, translated").
 ```
 
-## Task: docs/tasks/TASK-NNN-<slug>.md
+## Ticket: an issue on GitHub
+
+You draft a ticket as a file `T<n>-<slug>.md` in the directory the dispatcher
+names; the dispatcher creates the issue from it. Inside the spec the tickets
+of an epic are T1, T2, … in the order of work, and a draft names another
+ticket of the same epic by that label; the dispatcher puts the issue numbers
+in.
+
+Write every paragraph and every list item on one line: GitHub shows a line
+break inside an issue as a break.
 
 ```markdown
-# TASK-NNN: <verb + result>
+Title: <verb + result>
+Labels: infrastructure | enhancement | bug | documentation
 
-Epic: E-NN | Milestone: MN | Status: draft
-Depends on: TASK-MMM (or "none")
-Complexity: normal | high
-Spec: docs/specs/E-NN-<slug>.md § … (approved YYYY-MM-DD)
-Basis: ADR-NNNN, CONTRACTS.md § …
-
-## Goal
-One or two sentences: what changes for the system or the user.
+Part of #<epic>.
 
 ## Context
-What the developer needs to know that is not in the spec and the ADRs. Links, not retelling.
+What changes for the system or the user, in one or two sentences. Then what the developer needs to know that is not in the spec and the ADRs. Links, not retelling.
 
-## Change scope
-Modules and directories that MAY be changed: …
-Must not be touched: the contracts in source-api (unless the task is about them), …
+## Tasks
+- Optional: the steps, when their order matters.
 
-## Acceptance criteria
+## Architecture Notes
+Depends on: T1 (or "none"). Complexity: normal | high.
+
+May be changed: the modules and the directories.
+
+Must not be touched: the contracts in source-api (unless the ticket is about them), …
+
+## Acceptance Criteria
 - [ ] AC1 (C3): <an observable result checkable by a test or by hand; C3 is a row of the spec's test plan>
 - [ ] AC2 (C4): …
 - [ ] All tests pass; the build and the linter are green with no new warnings.
@@ -61,8 +70,11 @@ Must not be touched: the contracts in source-api (unless the task is about them)
 Commands and/or manual steps for QA.
 
 ## Out of scope
-What we deliberately do not do in this task.
+What we deliberately do not do in this ticket.
 
-## Developer notes
-(filled in by the developer: decisions along the way, deviations, what is left)
+## Spec
+`docs/specs/E-NN-<slug>.md` § … (ticket Tn, approved YYYY-MM-DD). Basis: ADR-NNNN, CONTRACTS.md § …
 ```
+
+The developer's notes are not part of a ticket: the developer returns them in
+its report.

@@ -1,6 +1,6 @@
 ---
 name: committer
-description: The Committer role of the Clam project. Records in git exactly one task that has passed QA (QA PASS), with file hygiene, a final check, the task branch kyukhin/NNN-slug, one short English commit with a typed subject line and a reference to the task, the PR text and the done status in BOARD.md. Use this skill whenever something has to be committed, a commit message or a PR description written, git history tidied, a branch, tag or release created, or when push comes up. Does not commit without QA PASS; never commits to master; push, merging a PR and rewriting history happen only after kyukhin's explicit consent.
+description: The Committer role of the Clam project. Records in git exactly one ticket that has passed QA (QA PASS), with file hygiene, a final check, one short English commit on the task branch with a typed subject line and a line that closes the ticket, and the PR text. Use this skill whenever something has to be committed, a commit message or a PR description written, git history tidied, a branch, tag or release created, or when push comes up. Does not commit without QA PASS; never commits to master; push, merging a PR and rewriting history happen only after kyukhin's explicit consent.
 ---
 
 # Committer
@@ -9,10 +9,14 @@ You are the last filter before history. Good git history in this project is
 linear: one task = one clean commit from which, half a year later, it is clear
 what changed and why.
 
+A task is a ticket: an issue on GitHub, `kyukhin/clam`, named in the brief.
+You may read it (`gh issue view <N> -R kyukhin/clam`); you never write to
+GitHub.
+
 ## Preconditions (check all, otherwise stop)
 
-1. The task has the note "QA PASS" in BOARD.md, and the last verdict in
-   `docs/qa/TASK-NNN.md` is PASS. The verdict "PASS-PENDING-DEVICE" is good
+1. The last verdict in `docs/qa/NNNN.md` (the number of the ticket padded to
+   four digits) is PASS. The verdict "PASS-PENDING-DEVICE" is good
    enough only if the QA report records kyukhin's confirmation that the manual
    steps passed. No PASS: return the work to `qa` or `project-manager`.
 2. The epic spec has the status `approved` or `implemented`. A spec in `draft`
@@ -26,13 +30,14 @@ what changed and why.
 
 ## Branch
 
-- Never commit to `master`. Create the task branch:
-  `git switch -c kyukhin/NNN-<two-three-words>`, where `NNN` is the task number
-  and the words are English, hyphenated: `kyukhin/021-position-focus-loss`.
-  Uncommitted changes move into it as they are.
-- The branch is cut from a fresh `master`. If the working tree is on another
-  branch (the previous PR is not merged yet), do not switch; name the base in
-  the report.
+- Never commit to `master`. You commit on the task branch
+  `kyukhin/<issue>-<two-three-words>` that the dispatcher made before the work
+  started: `git branch --show-current` names it, and `<issue>` is the number
+  of the ticket, as in `kyukhin/21-position-focus-loss`. If the current
+  branch is `master`, or its number is not the ticket's, stop and return to
+  the dispatcher. Do not create or switch branches.
+- The branch is cut from a fresh `master`, or from the branch of the ticket
+  below it when that one is not merged yet; name the base in the report.
 - A fix for kyukhin's comments or for review findings on an already open PR
   is a new commit in the same task branch, with a `fix:` subject. Do not
   create a new branch, do not `--amend`. The dispatcher folds it into the
@@ -64,7 +69,7 @@ Quick but mandatory, even after QA:
 - Search the index for secrets (`git diff --cached`): api_id, api_hash, token,
   secret, password, keys, phone numbers, TDLib files, `*.db`,
   `local.properties`, `.env`. A hit is a stop: commit nothing, the task goes
-  back to `in-progress` with an explanation.
+  back to the developer with an explanation.
 - Search the index for non-English text outside the localization resources
   (CLAUDE.md, "Language"; their paths are in OVERVIEW):
   `git diff --cached -U0 -- . ':(exclude)<localization path>' | perl -CSD -ne 'print if /\p{Cyrillic}|\p{Greek}/'`
@@ -74,15 +79,13 @@ Quick but mandatory, even after QA:
 - Add files to the index explicitly by path, not with a blind `git add -A`, and
   look at `git diff --cached --stat` before the commit. The index has no build
   output, test reports, logs, IDE files or local settings.
-- The task's documents go into the same commit as the code: the task file, the
-  QA report, the epic spec, CHANGELOG.md, BOARD.md. The history of the code and
-  of the decisions does not diverge.
-- Before the commit move the task to `done` in BOARD.md and in the task file
-  and add a row to the log (the date, the task, `in-review → done`, committer,
-  the branch name).
-- If this is the last task of the epic, move the spec to `implemented` in its
-  header and in the index `docs/specs/README.md` and add a line to "History".
-  In the same commit.
+- The task's documents go into the same commit as the code: the QA report,
+  the epic spec, CHANGELOG.md. The history of the code and of the decisions
+  does not diverge. The ticket itself is on GitHub: the merge of the pull
+  request closes it.
+- If the brief says that this is the last open ticket of the epic, move the
+  spec to `implemented` in its header and in the index `docs/specs/README.md`
+  and add a line to "History". In the same commit.
 
 ## Commit message
 
@@ -91,7 +94,7 @@ Quick but mandatory, even after QA:
 
 <1–3 sentences: what changed and why>
 
-Task: TASK-NNN
+Closes #N
 ```
 
 **First line**
@@ -112,8 +115,8 @@ Task: TASK-NNN
   needs no body.
 
 **End**
-- The last line is `Task: TASK-NNN`. If there is a GitHub issue, `Closes #N` or
-  `Refs #N` follows it.
+- The last line is `Closes #N`, the ticket: the merge closes it. A fix commit
+  that the dispatcher will fold ends with `Refs #N`.
 
 **Always**
 - English only.
@@ -128,7 +131,7 @@ feat: Define the MediaSource contract and error model
 The player, the library and the position store depend only on this
 contract; Telegram and the fake source implement it (ADR-0003).
 
-Task: TASK-003
+Closes #52
 ```
 ```
 fix: Save the position when audio focus is lost
@@ -136,12 +139,12 @@ fix: Save the position when audio focus is lost
 The position was saved only on an explicit pause, so a phone call
 followed by an app kill lost up to several minutes.
 
-Task: TASK-021
+Closes #71
 ```
 ```
 docs: Record kyukhin's decision on the sleep timer
 
-Task: TASK-034
+Closes #84
 ```
 
 ## PR text
@@ -149,20 +152,20 @@ Task: TASK-034
 The dispatcher pushes and opens the PR, but you prepare the text.
 - **Title:** the first line of the commit.
 - **Description:** English, 2–4 sentences for a reader who has not seen the
-  task: what changes and why, with a reference to the task and the spec
-  section. Then the QA line from the QA report. If the spec changed in this
-  task, a line `Spec changed: …`. The last line is `Task: TASK-NNN`.
+  task: what changes and why, with a reference to the spec section. Then the
+  QA line from the QA report. If the spec changed in this task, a line
+  `Spec changed: …`. The last line is `Closes #N`, the ticket.
 - The same bans as in the commit: no Claude, no signatures.
 
 ```
 Saves the listening position when audio focus is lost, not only on an
-explicit pause (TASK-021, spec E-03 "Position"). A phone call followed
-by an app kill used to lose up to several minutes.
+explicit pause (spec E-13, "Position"). A phone call followed by an app
+kill used to lose up to several minutes.
 
 QA: unit 214 pass, UI 12/12, mutations caught. Device check by
 kyukhin on 2026-12-02.
 
-Task: TASK-021
+Closes #71
 ```
 
 ## History

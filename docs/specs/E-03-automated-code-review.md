@@ -1,6 +1,6 @@
 # E-03: Automated code review and the first checks
 
-> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Tasks: TASK-001, TASK-002, TASK-003, TASK-004 · Updated: 2026-11-28
+> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Epic: #8 · Tickets: #35 (T1), #36 (T2), #37 (T3), #38 (T4) · Updated: 2026-11-28
 
 Read first: `docs/architecture/OVERVIEW.md`, ADR-0005 (the review and its
 place in the pipeline; accepted 2026-11-27), ADR-0001 (the toolchain and the
@@ -17,7 +17,7 @@ item. It serves:
 
 - PRD §14: "Automated code review has to be added, CodeRabbit or somebody
   else."
-- Roadmap, M0: "A PR in the repository gets an automated review."
+- Milestone M0 on GitHub: "A PR in the repository gets an automated review."
 - Invariant 4 of CLAUDE.md and the risk of PRD §12 "Secrets get into the
   public repository".
 - CLAUDE.md, "Language": English only outside the localization resources.
@@ -64,7 +64,8 @@ No state stops work by itself, except a secret found in the branch.
 ### What kyukhin does by hand
 
 kyukhin's account already has CodeRabbit: it reviews LibreDict (ADR-0005,
-L3). No sign-up and no new installation is needed.
+L3). No sign-up and no new installation is needed. Whether H1 and H2 are
+done is the state of issue #43, assigned to kyukhin.
 
 - **H1. Add `clam` to the installation.** github.com → Settings →
   Applications → Installed GitHub Apps → CodeRabbit → Configure. Under
@@ -84,7 +85,7 @@ To take the bot off Clam: the same page, remove `clam` from the selected
 repositories.
 
 **When to do H1:** when the dispatcher says that the pull request with
-`.coderabbit.yaml` is open: the pull request of TASK-001. From the moment the
+`.coderabbit.yaml` is open: the pull request of T1. From the moment the
 bot has access it can review, by itself, whatever is opened or pushed next
 (ADR-0005, L4). Without the file it works with the settings of kyukhin's
 account, as in LibreDict, where it appends its own block to the PR
@@ -97,7 +98,7 @@ those of the tasks. Two kinds can be in the position above: a document pull
 request that is still open at H1 and is pushed to afterwards, and a task
 branch that was cut before `.coderabbit.yaml` reached `master`. The way to
 avoid both: the document pull requests are merged before H1, and the branch
-of every task after TASK-001 is cut from a `master` that holds the file. A
+of every task after T1 is cut from a `master` that holds the file. A
 pull request that misses this gets the bot's block in its description and
 findings of SwiftLint, and nothing worse.
 
@@ -330,12 +331,12 @@ The check is not a general scanner. It covers what GitHub's scanner does not
 know (see "What GitHub's scanner does not see").
 
 The repository as it is on 2026-11-27 passes all four checks except for two
-things the first task with a check, TASK-002, removes: `docs/product/PRD.md`
-has no final line feed (one byte is added, no text changes), and the editor's
-lock and autosave files in `docs/plan/` are not ignored until `.gitignore`
-gets `.#*` and `#*#`. TASK-002 adds these two lines and the two for the build
-output of the tool, `.build/` and `.swiftpm/`; TASK-004 rewrites the file
-together with the check that holds it in place.
+things the first task with a check, T2, removes: `docs/product/PRD.md` has no
+final line feed (one byte is added, no text changes), and the editor's lock
+and autosave files in `docs/plan/`, a folder the repository had then, are not
+ignored until `.gitignore` gets `.#*` and `#*#`. T2 adds these two lines and
+the two for the build output of the tool, `.build/` and `.swiftpm/`; T4
+rewrites the file together with the check that holds it in place.
 
 ### Checks on GitHub: the second line
 
@@ -547,28 +548,35 @@ on GitHub, and none of them is a developer task: C10 and C12 are checked by
 kyukhin and the dispatcher on the pull request the table names, and C11 is the
 dispatcher's change of the kit, which kyukhin reads.
 
-Rows with more than one task. C5: TASK-002 proves the set, the links, the
-output and the exit statuses with `whitespace`; TASK-004 proves "by name and
-size" with `tracked-files`. C6: TASK-002 proves the three commands with the
-first check and Xcode 26.4; TASK-003 proves Xcode 27, by the `check` job;
-TASK-004 proves that `make lint` runs all four checks.
+The tickets, in the order of work: T1 (#35, formerly TASK-001), T2 (#36,
+formerly TASK-002), T3 (#37, formerly TASK-003) and T4 (#38, formerly
+TASK-004). The old numbers stay where they were written before the tasks
+moved to GitHub on 2026-11-28: in "History", in the dated entries of
+"Decisions", in the commits of T1 to T3 and in the names of their QA reports,
+`docs/qa/TASK-001.md` to `docs/qa/TASK-003.md`.
 
-| No. | Acceptance criterion | Task | Proved by |
+Rows with more than one ticket. C5: T2 proves the set, the links, the output
+and the exit statuses with `whitespace`; T4 proves "by name and size" with
+`tracked-files`. C6: T2 proves the three commands with the first check and
+Xcode 26.4; T3 proves Xcode 27, by the `check` job; T4 proves that
+`make lint` runs all four checks.
+
+| No. | Acceptance criterion | Ticket | Proved by |
 |---|---|---|---|
-| C1 | `language` fails on a Cyrillic and on a Greek letter in the content of a checked file and in its path; passes for the same letters under each of the four localization paths; passes on Latin text, digits, punctuation and symbols of other scripts; passes on the repository | TASK-004 | tool tests, fixtures built at run time; the check on the repository |
-| C2 | `whitespace` fails on each of W1 to W6; passes on a tab in `Makefile` and on an empty file; passes on the repository, where `docs/product/PRD.md` now ends with one line feed and no other byte of it changed | TASK-002 | tool tests; the check on the repository; QA compares the PRD with `master`. Tests (`WhitespaceRuleTests`): `w1TrailingSpace`, `w1TrailingTabIsAlsoATab`, `w1ReportsTheStartOfTheTrailingRun`, `w1LineOfSpacesOnly`, `w1OnTheLastLineWithoutLineFeed`, `w1SpaceBeforeACarriageReturnIsTrailing`, `w1SpaceInsideALineIsFine`, `w2TabInTheMiddleOfALine`, `w2LeadingTabOnALaterLine`, `w2OneLineForEachLineWithATab`, `w2ExemptPaths` (`Makefile`, `*.mk`, at any depth), `w2PathsThatAreNotExempt`, `exemptionOfW2LeavesTheOtherRulesInMakefile`, `w3CarriageReturnAtTheEndOfEveryLine`, `w3CarriageReturnInsideALine`, `w3CarriageReturnWithoutLineFeedOnTheLastLine`, `w4ByteOrderMark`, `w4ByteOrderMarkInAnOtherwiseEmptyLine`, `w5NoLineFeedAtTheEnd`, `w5MoreThanOneLineFeedAtTheEnd`, `w5ThreeLineFeedsAtTheEnd`, `w5FileOfTwoLineFeeds`, `w5IsAboutTheWholeFileAndHasNoPosition`, `w5TheMessageSaysWhichOfTheTwoCasesItIs`, `w5EmptyFilePasses`, `w5ExactlyOneLineFeedPasses`, `w6InvalidUTF8` (7 cases), `w6ValidMultiByteTextPasses`, `w6TheLastLineInvalidWithoutLineFeedAlsoGetsW5`, `aCleanFilePasses`, `theColumnCountsBytesNotCharacters`, `theCheckRewritesNothing`; `make lint` on the repository |
-| C3 | `tracked-files` fails for a file of every pattern of the table when the file is tracked, and when it is untracked and not ignored; passes when git ignores it; fails on a file larger than 1 MiB; fails when `.gitignore` does not ignore a sample of a pattern. `.gitignore` holds the patterns of the table and no Android or Flutter line. The check passes on the repository | TASK-004 | tool tests on temporary git repositories; QA reads `.gitignore` |
-| C4 | `secrets` fails on S1, S2 and S3; its output does not contain the matched value; it passes on lines that name `api_id` and `api_hash` without a value, and on the repository | TASK-004 | tool tests, values built at run time; one test asserts the value is absent from the output |
-| C5 | The checked set is every tracked file and every untracked file that git does not ignore. An ignored file with a violation passes. A binary file is checked by name and size only. A symbolic link, a dangling one included, is not opened. Output lines have the form `path:line:column: check: message`. The exit status is 0, 1 or 2 as designed | TASK-002, TASK-004 | tool tests on temporary git repositories. TASK-002 (`CheckedSetTests`, `OutputAndExitStatusTests`): the set: `aTrackedFileIsCheckedWithTheContentItHasOnDiskNow`, `aTrackedFileThatIsCleanOnDiskPassesWhateverTheIndexHolds`, `anUntrackedFileThatGitDoesNotIgnoreIsChecked`, `aFileThatGitIgnoresIsNotChecked`, `theIgnoreFileItselfIsChecked`, `aFileThatIsTrackedAndIgnoredIsStillChecked`, `gitInfoExcludeIsHonored`, `theGlobalExcludesFileIsHonoredBecauseGitDecides`, `aTrackedFileDeletedFromTheWorkingTreeIsSkippedWithoutAnError`, `aTrackedFileInADeletedFolderIsSkippedToo`, `aTrackedFolderReplacedByAFileIsSkippedWithoutAnError`, `aTrackedFolderReplacedByALinkToAFolderOutsideTheRepositoryIsSkipped`, `aTrackedFolderReplacedByALinkToAFolderInsideTheRepositoryReportsTheFileOnce`, `aLinkInTheMiddleOfALongerPathIsSkipped` (the link at three depths), `aTrackedFolderReplacedByADanglingLinkIsSkipped`, `aPathWithASpaceAQuoteAndANonAsciiLetterIsReportedExactly`, `theSameNameIsReportedExactlyWhenTheFileIsTracked`, `runInASubdirectoryChecksTheWholeRepository`; binary files and links: `aFileWithANulByteIsBinaryAndItsContentIsNotChecked`, `aNulByteAtTheVeryEndStillMakesTheFileBinary`, `aLinkToAFileWithViolationsOutsideTheCheckedSetPasses`, `aDanglingLinkPasses`, `aLinkToADirectoryPasses`, `aLinkIsNeverFollowedEvenWhenItsTargetIsChecked`, `aNestedRepositoryIsNotOpenedAsAFile`; output: `aViolationInALineIsPathLineColumnCheckMessage`, `aViolationOfAWholeFileHasNoLineAndNoColumn`, `lineAndColumnStartAtOne`, `theColumnCountsBytesAndNotCharacters`, `theFormattedLineOfAViolationHasBothForms`, `thePathIsRelativeToTheRootNotToTheCurrentDirectory`, `linesAreSortedByPathAndThenByLine`, `aViolationOfAWholeFileSortsBeforeTheLinesOfItsFile`, `theOrderOfPathsIsByBytesNotByLocale`, `violationsGoToStandardOutputAndNothingGoesToStandardError`, `everyOtherMessageGoesToStandardErrorAndNothingToStandardOutput`; exit statuses: `exitStatusIsZeroWithNoViolation`, `exitStatusIsZeroForARepositoryWithoutFiles`, `exitStatusIsOneWithViolations`, `exitStatusIsTwoForAnUnknownCommand`, `exitStatusIsTwoForNoCommand`, `exitStatusIsTwoForMoreThanOneArgument`, `exitStatusIsTwoOutsideAGitRepository`, `exitStatusIsTwoForADirectoryThatDoesNotExist`, `exitStatusIsTwoForAFileThatCannotBeRead` |
-| C6 | `make lint` runs all four checks, prints the violations of all of them and exits with an error if any failed. `make check` runs `lint` and `test-tools` and passes on the repository with Xcode 26.4 and with Xcode 27, with no compiler warning. No stored file of the tool breaks a check | TASK-002, TASK-003, TASK-004 | by hand by QA on the Mac: add one violation of each check, see four groups of lines and the error exit, remove them. Mutation: QA breaks one rule of each check and sees its test fail. Xcode 27: the `check` job, whose log shows the Swift version in the first line of `make check` and no compiler warning (TASK-003, read by the dispatcher on the pull request). TASK-002: `make check`, `make lint` and `make test-tools` on the repository with Xcode 26.4; by hand, a file with a trailing space makes `make lint` print its line and fail, and an unused variable in the tool makes `make check` fail (`-Xswiftc -warnings-as-errors`); every fixture is built at run time by `TemporaryRepository` and removed with it |
-| C7 | `.github/workflows/ci.yml` runs the job `check` with the single command `make check` on `xcode-27`, for a pull request into `master` and a push to `master`. It meets every constraint of "Checks on GitHub" | TASK-003 | QA reads the workflow. After the PR of the task is opened: the `check` job is green on it. TASK-003: the file is valid against GitHub's workflow schema (`check-jsonschema --builtin-schema vendor.github-workflows`, 0.39.0) and loads as YAML with `ruby -ryaml -rjson`; the pin is `actions/checkout` v7.0.1, the latest release on 2026-11-28, whose tag points straight at commit `3d3c42e5aac5ba805825da76410c181273ba90b1` (`gh api repos/actions/checkout/commits/<hash> --jq .sha` prints it); `runs-on: xcode-27` is in the runner table of `actions/runner-images`; `make check` is green on the Mac with the file in the tree; the concurrency group is read against GitHub's documentation of `concurrency` (a `pending` run is replaced by a newer one in the same group, so a push to `master` gets a group of its own, its run id). The run on the pull request, and the push runs on `master` after merges, are read by the dispatcher after the commit |
-| C8 | The repository settings are as the table of "GitHub settings" says, and this epic changed none | TASK-003 | QA reads each back with `gh api` and lists the values in its report. TASK-003 changes no setting: the only files it adds or edits are the workflow and documents |
-| C9 | `.coderabbit.yaml` is in the root and holds the five values and the four instructions, and nothing else. The bot reads it without a warning | TASK-001 | QA reads the file against the table. Checks, run on the file: `ruby -ryaml -rjson` prints it as data, every key looked up in `schema.v2.json` with `jq` (type and enum values), `git diff --check`, the language command of the QA skill, `tail -c1 .coderabbit.yaml \| xxd -p` prints `0a`, and the glob of the entry read out of the file and matched with Minimatch 10.1.1, `dot` on and off, against 20 named paths and all 254 paths of depth 1 to 7 made of `a` and `.b` (task notes). By hand, on the PR of the task: `@coderabbitai configuration` shows these values as coming from the file |
-| C10 | The first review. On the PR that adds `.coderabbit.yaml`, after H1, a review runs, by itself or on the comment, and the `CodeRabbit` check reaches "Finished" | no developer task; on the pull request of TASK-001 | by hand, kyukhin and the dispatcher, steps below |
+| C1 | `language` fails on a Cyrillic and on a Greek letter in the content of a checked file and in its path; passes for the same letters under each of the four localization paths; passes on Latin text, digits, punctuation and symbols of other scripts; passes on the repository | T4 | tool tests, fixtures built at run time; the check on the repository |
+| C2 | `whitespace` fails on each of W1 to W6; passes on a tab in `Makefile` and on an empty file; passes on the repository, where `docs/product/PRD.md` now ends with one line feed and no other byte of it changed | T2 | tool tests; the check on the repository; QA compares the PRD with `master`. Tests (`WhitespaceRuleTests`): `w1TrailingSpace`, `w1TrailingTabIsAlsoATab`, `w1ReportsTheStartOfTheTrailingRun`, `w1LineOfSpacesOnly`, `w1OnTheLastLineWithoutLineFeed`, `w1SpaceBeforeACarriageReturnIsTrailing`, `w1SpaceInsideALineIsFine`, `w2TabInTheMiddleOfALine`, `w2LeadingTabOnALaterLine`, `w2OneLineForEachLineWithATab`, `w2ExemptPaths` (`Makefile`, `*.mk`, at any depth), `w2PathsThatAreNotExempt`, `exemptionOfW2LeavesTheOtherRulesInMakefile`, `w3CarriageReturnAtTheEndOfEveryLine`, `w3CarriageReturnInsideALine`, `w3CarriageReturnWithoutLineFeedOnTheLastLine`, `w4ByteOrderMark`, `w4ByteOrderMarkInAnOtherwiseEmptyLine`, `w5NoLineFeedAtTheEnd`, `w5MoreThanOneLineFeedAtTheEnd`, `w5ThreeLineFeedsAtTheEnd`, `w5FileOfTwoLineFeeds`, `w5IsAboutTheWholeFileAndHasNoPosition`, `w5TheMessageSaysWhichOfTheTwoCasesItIs`, `w5EmptyFilePasses`, `w5ExactlyOneLineFeedPasses`, `w6InvalidUTF8` (7 cases), `w6ValidMultiByteTextPasses`, `w6TheLastLineInvalidWithoutLineFeedAlsoGetsW5`, `aCleanFilePasses`, `theColumnCountsBytesNotCharacters`, `theCheckRewritesNothing`; `make lint` on the repository |
+| C3 | `tracked-files` fails for a file of every pattern of the table when the file is tracked, and when it is untracked and not ignored; passes when git ignores it; fails on a file larger than 1 MiB; fails when `.gitignore` does not ignore a sample of a pattern. `.gitignore` holds the patterns of the table and no Android or Flutter line. The check passes on the repository | T4 | tool tests on temporary git repositories; QA reads `.gitignore` |
+| C4 | `secrets` fails on S1, S2 and S3; its output does not contain the matched value; it passes on lines that name `api_id` and `api_hash` without a value, and on the repository | T4 | tool tests, values built at run time; one test asserts the value is absent from the output |
+| C5 | The checked set is every tracked file and every untracked file that git does not ignore. An ignored file with a violation passes. A binary file is checked by name and size only. A symbolic link, a dangling one included, is not opened. Output lines have the form `path:line:column: check: message`. The exit status is 0, 1 or 2 as designed | T2, T4 | tool tests on temporary git repositories. T2 (`CheckedSetTests`, `OutputAndExitStatusTests`): the set: `aTrackedFileIsCheckedWithTheContentItHasOnDiskNow`, `aTrackedFileThatIsCleanOnDiskPassesWhateverTheIndexHolds`, `anUntrackedFileThatGitDoesNotIgnoreIsChecked`, `aFileThatGitIgnoresIsNotChecked`, `theIgnoreFileItselfIsChecked`, `aFileThatIsTrackedAndIgnoredIsStillChecked`, `gitInfoExcludeIsHonored`, `theGlobalExcludesFileIsHonoredBecauseGitDecides`, `aTrackedFileDeletedFromTheWorkingTreeIsSkippedWithoutAnError`, `aTrackedFileInADeletedFolderIsSkippedToo`, `aTrackedFolderReplacedByAFileIsSkippedWithoutAnError`, `aTrackedFolderReplacedByALinkToAFolderOutsideTheRepositoryIsSkipped`, `aTrackedFolderReplacedByALinkToAFolderInsideTheRepositoryReportsTheFileOnce`, `aLinkInTheMiddleOfALongerPathIsSkipped` (the link at three depths), `aTrackedFolderReplacedByADanglingLinkIsSkipped`, `aPathWithASpaceAQuoteAndANonAsciiLetterIsReportedExactly`, `theSameNameIsReportedExactlyWhenTheFileIsTracked`, `runInASubdirectoryChecksTheWholeRepository`; binary files and links: `aFileWithANulByteIsBinaryAndItsContentIsNotChecked`, `aNulByteAtTheVeryEndStillMakesTheFileBinary`, `aLinkToAFileWithViolationsOutsideTheCheckedSetPasses`, `aDanglingLinkPasses`, `aLinkToADirectoryPasses`, `aLinkIsNeverFollowedEvenWhenItsTargetIsChecked`, `aNestedRepositoryIsNotOpenedAsAFile`; output: `aViolationInALineIsPathLineColumnCheckMessage`, `aViolationOfAWholeFileHasNoLineAndNoColumn`, `lineAndColumnStartAtOne`, `theColumnCountsBytesAndNotCharacters`, `theFormattedLineOfAViolationHasBothForms`, `thePathIsRelativeToTheRootNotToTheCurrentDirectory`, `linesAreSortedByPathAndThenByLine`, `aViolationOfAWholeFileSortsBeforeTheLinesOfItsFile`, `theOrderOfPathsIsByBytesNotByLocale`, `violationsGoToStandardOutputAndNothingGoesToStandardError`, `everyOtherMessageGoesToStandardErrorAndNothingToStandardOutput`; exit statuses: `exitStatusIsZeroWithNoViolation`, `exitStatusIsZeroForARepositoryWithoutFiles`, `exitStatusIsOneWithViolations`, `exitStatusIsTwoForAnUnknownCommand`, `exitStatusIsTwoForNoCommand`, `exitStatusIsTwoForMoreThanOneArgument`, `exitStatusIsTwoOutsideAGitRepository`, `exitStatusIsTwoForADirectoryThatDoesNotExist`, `exitStatusIsTwoForAFileThatCannotBeRead` |
+| C6 | `make lint` runs all four checks, prints the violations of all of them and exits with an error if any failed. `make check` runs `lint` and `test-tools` and passes on the repository with Xcode 26.4 and with Xcode 27, with no compiler warning. No stored file of the tool breaks a check | T2, T3, T4 | by hand by QA on the Mac: add one violation of each check, see four groups of lines and the error exit, remove them. Mutation: QA breaks one rule of each check and sees its test fail. Xcode 27: the `check` job, whose log shows the Swift version in the first line of `make check` and no compiler warning (T3, read by the dispatcher on the pull request). T2: `make check`, `make lint` and `make test-tools` on the repository with Xcode 26.4; by hand, a file with a trailing space makes `make lint` print its line and fail, and an unused variable in the tool makes `make check` fail (`-Xswiftc -warnings-as-errors`); every fixture is built at run time by `TemporaryRepository` and removed with it |
+| C7 | `.github/workflows/ci.yml` runs the job `check` with the single command `make check` on `xcode-27`, for a pull request into `master` and a push to `master`. It meets every constraint of "Checks on GitHub" | T3 | QA reads the workflow. After the PR of the task is opened: the `check` job is green on it. T3: the file is valid against GitHub's workflow schema (`check-jsonschema --builtin-schema vendor.github-workflows`, 0.39.0) and loads as YAML with `ruby -ryaml -rjson`; the pin is `actions/checkout` v7.0.1, the latest release on 2026-11-28, whose tag points straight at commit `3d3c42e5aac5ba805825da76410c181273ba90b1` (`gh api repos/actions/checkout/commits/<hash> --jq .sha` prints it); `runs-on: xcode-27` is in the runner table of `actions/runner-images`; `make check` is green on the Mac with the file in the tree; the concurrency group is read against GitHub's documentation of `concurrency` (a `pending` run is replaced by a newer one in the same group, so a push to `master` gets a group of its own, its run id). The run on the pull request, and the push runs on `master` after merges, are read by the dispatcher after the commit |
+| C8 | The repository settings are as the table of "GitHub settings" says, and this epic changed none | T3 | QA reads each back with `gh api` and lists the values in its report. T3 changes no setting: the only files it adds or edits are the workflow and documents |
+| C9 | `.coderabbit.yaml` is in the root and holds the five values and the four instructions, and nothing else. The bot reads it without a warning | T1 | QA reads the file against the table. Checks, run on the file: `ruby -ryaml -rjson` prints it as data, every key looked up in `schema.v2.json` with `jq` (type and enum values), `git diff --check`, the language command of the QA skill, `tail -c1 .coderabbit.yaml \| xxd -p` prints `0a`, and the glob of the entry read out of the file and matched with Minimatch 10.1.1, `dot` on and off, against 20 named paths and all 254 paths of depth 1 to 7 made of `a` and `.b` (the developer's notes, in #35). By hand, on the PR of the task: `@coderabbitai configuration` shows these values as coming from the file |
+| C10 | The first review. On the PR that adds `.coderabbit.yaml`, after H1, a review runs, by itself or on the comment, and the `CodeRabbit` check reaches "Finished" | no developer task; on the pull request of T1 | by hand, kyukhin and the dispatcher, steps below |
 | C11 | CLAUDE.md, the committer's skill and the developer's skill hold the review step of ADR-0005 in the wording for one commit per task (M2), which kyukhin chose | no developer task; the dispatcher's change of the kit | by hand: kyukhin reads the diff of the dispatcher's pull request from the branch `kyukhin/000-review-kit` |
-| C12 | A task PR opened after C11 goes through the whole step: the report has the lines "Review" and "GitHub check", and on the PR page every thread of the bot has an answer and is resolved | no developer task; on the pull request of TASK-003 | by hand, kyukhin, steps below |
+| C12 | A task PR opened after C11 goes through the whole step: the report has the lines "Review" and "GitHub check", and on the PR page every thread of the bot has an answer and is resolved | no developer task; on the pull request of T3 | by hand, kyukhin, steps below |
 
-C10, by hand, on the pull request of TASK-001:
+C10, by hand, on the pull request of T1:
 
 1. The PR of the task that adds `.coderabbit.yaml` is open. The dispatcher
    says so, and kyukhin does H1 and H2. Until H1 the bot does not see the
@@ -592,14 +600,14 @@ the summary opens with no parsing warning and lists no unrecognized property
 (ADR-0005, V19), and the reply to `@coderabbitai configuration` names the file
 as the source of every value of the table.
 
-The dispatcher writes into `docs/qa/TASK-001.md` what ADR-0005 only assumes:
-the number of reviews an hour that the bot's comment names for `clam` (A1)
-and the minutes from the comment to "Finished". Whether the bot starts by
-itself on `clam` (A1, A3) shows on the next pull request that is opened: the
-dispatcher records in the QA report of that task whether the check appeared
-within 2 minutes.
+The dispatcher writes into the QA report of T1, `docs/qa/TASK-001.md`, what
+ADR-0005 only assumes: the number of reviews an hour that the bot's comment
+names for `clam` (A1) and the minutes from the comment to "Finished". Whether
+the bot starts by itself on `clam` (A1, A3) shows on the next pull request
+that is opened: the dispatcher records in the QA report of that task whether
+the check appeared within 2 minutes.
 
-C12, by hand, on the pull request of TASK-003. It is the first task PR whose
+C12, by hand, on the pull request of T3. It is the first task PR whose
 branch holds the workflow, so the first whose page can list both checks. If
 it gets no review, C12 is checked on the next task PR that gets one:
 
@@ -700,3 +708,18 @@ question 2 with (a), question 3 with (M2). See "Decisions".
 - 2026-11-28: TASK-002 after QA check 1 (B1, N1): "The check tool", "The checked set" says that a tracked path below a symbolic link is not in the set, like a deleted file. A small detail that follows from "a symbolic link is never opened"; no other change.
 - 2026-11-28: TASK-003 added `.github/workflows/ci.yml` and filled the "Proved by" cells of C6, C7 and C8 with the checks that were run. Small detail in "Design", "Checks on GitHub: the second line": the concurrency group is `ci-<pull request number or run id>` with `cancel-in-progress: true`. A pull request has its own group, so only its own older runs are cancelled; a push to `master` has the run id as its group, so no run of `master` is cancelled or replaced, and every push gets its own result. No other change.
 - 2026-11-28: TASK-003 after QA check 1 (B1): the first form of the group, one group for all pushes to `master` with `cancel-in-progress` off for them, protected only the run in progress. GitHub's documentation says that a `pending` run in a group is cancelled and replaced when a newer one is queued, so the commit of a middle merge got no result. The group is now the run id for a push, as above; the History line above is corrected to match.
+- 2026-11-28: the plan and the tasks moved from files of the repository to
+  GitHub, on kyukhin's words: "This does not fit, it is all wrong. We must
+  work by milestones, epics and tasks in them." References are updated, with
+  no change of behavior or design; the status stays `approved`. The header
+  names the epic issue, #8, and the tickets; the spec calls them T1 to T4, and
+  "Test plan" maps these names to the issues and to the former TASK-001 to
+  TASK-004. Changed from the old numbers to T1 to T4: "When to do H1", the
+  baseline paragraph of "The four checks", the test plan with its two
+  paragraphs about C10 and C12. "Why" names milestone M0 on GitHub, where the
+  text of the roadmap is now. "What kyukhin does by hand" names issue #43 for
+  H1 and H2. The cell of C9 points to the developer's notes in #35, where the
+  text of the task file is now. The entries of "Decisions" and the lines above
+  keep the numbers of their day. The roadmap they cite is no file any more:
+  its milestones and epics are on GitHub, and the words of kyukhin it quoted
+  for this epic are in issue #8.

@@ -1,29 +1,36 @@
 ---
 name: developer
-description: The Developer role of the Clam project. Implements exactly one task from docs/tasks with the status ready (or one returned by QA), with code and tests strictly within the change scope, following the approved epic spec, ADRs and contracts; maintains CHANGELOG.md. Use this skill whenever project code has to be written, changed or fixed, tests written, QA findings fixed or an unfinished task continued. If there is no task with the status ready, this skill writes no code and returns the work to project-manager.
+description: The Developer role of the Clam project. Implements exactly one ticket (an issue on GitHub that the dispatcher names), or fixes the findings of QA on it, with code and tests strictly within the change scope, following the approved epic spec, ADRs and contracts; maintains CHANGELOG.md. Use this skill whenever project code has to be written, changed or fixed, tests written, QA findings fixed or an unfinished task continued. If there is no ticket for the work, this skill writes no code and returns the work to project-manager.
 ---
 
 # Developer
 
 You turn one task into working, tested code. You do not decide what to do (that
-is the spec and the task) and you do not decide how the system is built (that
-is the ADRs and the contracts). Your freedom is inside the change scope of the task.
+is the spec and the ticket) and you do not decide how the system is built (that
+is the ADRs and the contracts). Your freedom is inside the change scope of the
+ticket.
+
+A task is a ticket: an issue on GitHub, `kyukhin/clam`. You read it and never
+write to GitHub: no comment, no edit, no label.
 
 ## Before writing code
 
-1. Find your task in `docs/plan/BOARD.md`: `in-progress` (you continue it), one
-   returned from QA, or the first `ready` one. If there is none, stop and say
-   that `project-manager` is needed.
+1. Your ticket is the issue the dispatcher named. Read it whole:
+   `gh issue view <N> -R kyukhin/clam --comments`. You are on its task branch
+   `kyukhin/<N>-…`, made by the dispatcher. If the brief names no ticket, or
+   the branch is `master`, stop and say that `project-manager` is needed.
 2. Read `docs/specs/README.md`, `docs/architecture/OVERVIEW.md`, the epic spec,
-   the whole task file, and every ADR and section of `CONTRACTS.md` they link
+   and every ADR and section of `CONTRACTS.md` the ticket and the spec link
    to. If the task came back from QA or from the review of its PR, also
-   `docs/qa/TASK-NNN.md`.
+   `docs/qa/NNNN.md` (the number of the ticket padded to four digits).
 3. **Do not work from a spec in `draft`.** If the status is neither `approved`
    nor `implemented`, stop and return the work to the dispatcher.
-4. Move the task to `in-progress` in BOARD.md (with a row in the log).
-5. Form a plan of 3–7 steps and write it into "Developer notes". If reading
-   showed that the task cannot be done within its change scope or contradicts
-   the contract or the spec, stop and escalate (see below).
+4. Form a plan of 3–7 steps. If reading showed that the task cannot be done
+   within its change scope or contradicts the contract or the spec, stop and
+   escalate (see below).
+
+Your notes (the decisions you made yourself and why, what is left) have no
+file: they go into your report, and the dispatcher passes them on.
 
 ## How to write code
 
@@ -44,9 +51,10 @@ is the ADRs and the contracts). Your freedom is inside the change scope of the t
   string also gets its Russian and Greek translations, and those go only into
   the localization resources listed in OVERVIEW.
 - **Do not touch what you do not need.** If you see bad code nearby, write it
-  into the notes as a proposal for a new task instead of fixing it.
-- **Do not commit.** The task branch and the commit are made by `committer`
-  after QA. Work in the working tree.
+  into your report as a follow-up instead of fixing it.
+- **Do not commit.** The dispatcher made the task branch; the commit is made
+  by `committer` after QA. Work in the working tree and do not switch
+  branches.
 
 ## Tests
 
@@ -95,7 +103,7 @@ Maintain `CHANGELOG.md` in the root (the Keep a Changelog format, the
 - One line for every task after which something changes for the user. A purely
   internal task (build, refactoring, tests) gets no line.
 - A fix or a small thing is **exactly one sentence**:
-  `- [TASK-021] The position is no longer lost after an incoming call.`
+  `- [#21] The position is no longer lost after an incoming call.`
 - A new feature is **no more than 3–4 sentences**: what appeared and why, not
   which classes changed.
 
@@ -114,11 +122,11 @@ Go through the checklist yourself; QA will check the same things:
 - [ ] There is no trailing whitespace and no tabs, every file ends with exactly
       one newline (`git diff --check` prints nothing).
 - [ ] The CHANGELOG is updated if the task is visible to the user.
-- [ ] Developer notes: what was done, which decisions you made yourself and why,
-      what is left (if something is left, those are separate `draft` tasks, not
-      a debt in this one).
+- [ ] Notes for the report: what was done, which decisions you made yourself
+      and why, what is left (what is left is a follow-up for the dispatcher
+      to record, not a debt in this ticket).
 
-Then move the task to `in-review`; `qa` is next.
+Then return your report; `qa` is next.
 
 ## Escalation
 
@@ -126,21 +134,21 @@ If the task requires changing the contract, going outside the change scope or
 adding a serious dependency, contradicts an ADR or diverges from the spec in
 substance:
 1. Stop. Do not make a "temporary" workaround.
-2. Write into "Developer notes": what is in the way, which options you see.
-3. Move the task to `blocked` with the reason, hand it to `architect`.
+2. Return `blocked` in your report: what is in the way, which options you
+   see. The dispatcher marks the ticket and calls `architect`.
 
 ## Return from QA or from the review
 
 Fix only what the QA report points out, its section "Review findings"
 included, plus direct consequences. If you disagree with a finding, do not
-argue with code: write your argument into the notes and ask the PM/architect
-to judge.
+argue with code: write your argument into your report and ask the
+PM/architect to judge.
 
 ## Subagent mode
 
 Usually the dispatcher calls you as a subagent. You do not see kyukhin. If you
 cannot do without kyukhin (an account, a secret or a product decision is
-needed), do not invent the answer: move the task to `blocked` and return the question.
+needed), do not invent the answer: return `blocked` and the question.
 
 Never run `make testflight` with `CONFIRM`: a delivery is the dispatcher's, on
 kyukhin's word (spec E-01). If a criterion needs a build on the phone, say so
@@ -149,8 +157,9 @@ in your report.
 Return your last message strictly in this form:
 
 ```
-RESULT: TASK-NNN → in-review | blocked
+RESULT: #N → ready for QA | blocked
 DONE: 2–4 lines, what changed
+NOTES: the decisions you made yourself and why; what is left (or "none")
 ACCEPTANCE CRITERIA: AC1 ✓ (test X) / AC2 ✓ (manual step) / …
 CHECKS: <command> → green/red, N warnings (for every build, test and linter command)
 SPEC: unchanged | changed: what and why

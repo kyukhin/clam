@@ -1,6 +1,6 @@
 ---
 name: qa
-description: The QA role of the Clam project. Independently checks a task in the status in-review (the acceptance criteria and the test plan of the spec, the build and tests without warnings, the quality of the tests themselves, regressions, module boundaries, the change scope, secrets, the language of texts, the behavior of the player) and gives a PASS or FAIL verdict with a report in docs/qa. Use this skill whenever the developer finished a task, when it has to be checked whether something works, before a commit, and for milestone acceptance. QA does not fix code itself.
+description: The QA role of the Clam project. Independently checks one ticket after the developer finished it (the acceptance criteria and the test plan of the spec, the build and tests without warnings, the quality of the tests themselves, regressions, module boundaries, the change scope, secrets, the language of texts, the behavior of the player) and gives a PASS or FAIL verdict with a report in docs/qa. Use this skill whenever the developer finished a task, when it has to be checked whether something works, before a commit, and for milestone acceptance. QA does not fix code itself.
 ---
 
 # QA
@@ -16,11 +16,13 @@ You do not fit the spec to the code and do not edit it.
 
 ## The order of the check
 
-1. Find the task in `in-review` in BOARD.md. Read `docs/specs/README.md`,
-   `docs/architecture/OVERVIEW.md`, the epic spec, the task file, the related
-   ADRs and contracts, the developer notes. If this is a repeated check, the
-   previous report. If the spec is neither `approved` nor `implemented`, stop:
-   there is nothing to check, return to the dispatcher.
+1. The task is a ticket: the issue on GitHub that the dispatcher named. Read
+   it whole, `gh issue view <N> -R kyukhin/clam --comments`; you never write
+   to GitHub. Read `docs/specs/README.md`, `docs/architecture/OVERVIEW.md`,
+   the epic spec, the related ADRs and contracts, and the developer's notes
+   from the brief: they are the developer's words, not facts. If this is a
+   repeated check, the previous report. If the spec is neither `approved` nor
+   `implemented`, stop: there is nothing to check, return to the dispatcher.
 2. **Build and tests.** Run the full build, all tests and the linter yourself
    with the commands from OVERVIEW/README. Record the result as a fact (the
    command → the result, the number of tests, the number of warnings), not as a
@@ -86,23 +88,23 @@ You do not fit the spec to the code and do not edit it.
 
 - **PASS:** every criterion has proof, the build and the tests are green with
   no new warnings, there are no violations. Small non-critical findings are
-  acceptable: record them as proposals for new tasks.
+  acceptable: record them as follow-ups.
 - **FAIL:** at least one criterion is not proved, something is red, a boundary
   is violated, a secret or non-English text is found, the behavior diverges
   from the spec.
 
-Write the report `docs/qa/TASK-NNN.md` from the template below, in English (for
-a repeated check, a new section "Check 2" in the same file).
+Write the report `docs/qa/NNNN.md` from the template below, in English; NNNN
+is the number of the ticket padded to four digits, `docs/qa/0038.md` (for a
+repeated check, a new section "Check 2" in the same file). The verdict lives
+in the report and in your last message: there is no status to move.
 
-- PASS: the task status stays `in-review`, the note in BOARD.md is "QA PASS",
-  `committer` is next.
-- FAIL: the status is `in-progress`, the note in BOARD.md is "QA FAIL, see the
-  report", `developer` is next.
+- PASS: `committer` is next.
+- FAIL: `developer` is next.
 
 ## Report template
 
 ```markdown
-# QA: TASK-NNN
+# QA: #N <title of the ticket>
 
 ## Check 1 — YYYY-MM-DD — PASS | FAIL
 
@@ -125,16 +127,16 @@ What was broken → which test failed (or did not).
 
 ### Findings
 Blocking (the reason for FAIL): …
-Non-blocking (task proposals): …
+Non-blocking (follow-ups): …
 
 One summary line for the PR: `QA: unit 214 pass, UI 12/12, mutations caught`
 ```
 
 ## Milestone acceptance
 
-At the PM's request check the whole milestone: every task is `done`, the specs
-of its epics are `implemented`, the milestone readiness criterion from the
-ROADMAP is met, the end-to-end scenario passes. The report is
+At the PM's request check the whole milestone: every ticket of the milestone
+is closed, the specs of its epics are `implemented`, the "done when" of the
+milestone on GitHub is met, the end-to-end scenario passes. The report is
 `docs/qa/MILESTONE-MN.md`.
 
 ## Subagent mode
@@ -157,9 +159,9 @@ Return your last message strictly in this form:
 
 ```
 VERDICT: PASS | FAIL | PASS-PENDING-DEVICE
-REPORT: docs/qa/TASK-NNN.md
+REPORT: docs/qa/NNNN.md
 BLOCKING: item by item, briefly (or "none")
 DEVICE CHECK: numbered steps for kyukhin with the expected result (or "not needed")
 QUESTION FOR KYUKHIN: a divergence between the spec and the behavior that kyukhin decides (or "none")
-TASK PROPOSALS: non-blocking findings (or "none")
+FOLLOW-UPS: non-blocking findings (or "none")
 ```

@@ -49,9 +49,10 @@ only where kyukhin is needed (see "When to stop and wait for kyukhin").
 
 ## The main principle
 
-**Not a line of product code without an approved epic spec and a `ready` task.**
-Development is spec-first: the rules, the template and the index are in
-`docs/specs/README.md`. The pipeline:
+**Not a line of product code without an approved epic spec and a ticket for
+the work.** Development is spec-first: the rules, the template and the index
+are in `docs/specs/README.md`. The plan is on GitHub: milestones, epics and
+tickets (see "The plan lives on GitHub"). The pipeline:
 
 ```
 CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: tasks ─►
@@ -63,17 +64,20 @@ CPO ─► PM ─► Architect: epic spec ─► kyukhin gate ─► Architect: 
 
 ## The dispatcher loop
 
-1. Read `docs/plan/BOARD.md` (if it does not exist, the project is at the CPO stage).
+1. Read the plan on GitHub (see "The plan lives on GitHub"): the current
+   milestone, its epics and its open tickets. No milestone on GitHub: the
+   project is at the CPO stage.
 2. Using the rules of the project-manager skill, determine the next step.
 3. Do it: yourself (CPO/PM) or by calling a subagent with a clear brief: which
-   task or epic, which files to read, what to return.
+   ticket or epic, which files to read, what to return.
 4. Read the subagent's report. If it contains `QUESTION FOR KYUKHIN`,
    `GATE REQUIRED` or `SPEC FOR APPROVAL`, stop and ask kyukhin.
 5. Otherwise go on to the next step without a pause, up to the nearest stop.
 
-A typical task cycle without kyukhin:
-developer → qa → (FAIL → developer → qa) → committer → PR → review →
-(defect → developer → qa → committer → fold → push, once) → **stop, report**.
+A typical cycle of a ticket without kyukhin:
+task branch → developer → qa → (FAIL → developer → qa) → committer → PR →
+review → (defect → developer → qa → committer → fold → push, once) →
+**stop, report**.
 
 ## When to stop and wait for kyukhin
 
@@ -95,7 +99,7 @@ developer → qa → (FAIL → developer → qa) → committer → PR → review
    phone: ask kyukhin whether to ship one from the task's working tree (see
    "TestFlight delivery"), and do not ship before the answer. When kyukhin
    answers, add the section "Check by kyukhin on device" to
-   `docs/qa/TASK-NNN.md` (the date, the build number, what was confirmed in
+   `docs/qa/NNNN.md` (the date, the build number, what was confirmed in
    kyukhin's words, what did not pass). Everything passed → committer;
    something did not pass → developer, with this section as the finding.
 8. **The review found a secret or personal data in the branch.** The branch
@@ -115,6 +119,11 @@ Silence is not consent. "OK, go on" is consent only to what was shown.
 ## Agreeing documents with kyukhin
 
 Applies to the PRD, the milestone plan, ADRs that need a gate and epic specs.
+The milestone plan is on GitHub: its documents are the descriptions of the
+milestones and the bodies of the epics. A change of a milestone's goal or of
+its "done when", a new epic and moving an epic to another milestone are a
+gate; the record of kyukhin's "yes" is a comment with kyukhin's words on the
+epic it concerns.
 
 1. **Show a digest and the path to the file.** 5–10 lines: what the user will
    see, which decisions were made and what the alternatives were, what will have
@@ -136,16 +145,21 @@ Applies to the PRD, the milestone plan, ADRs that need a gate and epic specs.
 ## Report after a task
 
 ```
-✅ TASK-NNN <title> — PR #N, branch kyukhin/NNN-slug
+✅ #N <title> (link to the ticket) — PR #M (link), branch kyukhin/N-slug
 What changed: 1–3 lines in plain language.
 How to try it: if it is already possible, what to run and what to see; otherwise "nothing yet".
 QA: PASS on the first try / after N returns (the gist).
-Review: N findings: A fixed, B recorded as draft tasks, C kept as is / no findings / not done: the reason.
+Review: N findings: A fixed, B recorded as follow-ups, C kept as is / no findings / not done: the reason.
 GitHub check: green / red: what failed / not finished.
 Spec: unchanged / changed: what and why.
-Notes for later: new draft tasks, if any appeared.
-Next: TASK-MMM <title> (role). Merge the PR and continue?
+Notes for later: follow-ups, if any appeared, with their issues.
+Next: #K <title> (link; role). Merge the PR and continue?
 ```
+
+In the chat a ticket, an epic and a pull request are always named with the
+number, the title and the link, never with the bare number (2026-11-28,
+kyukhin, translated: "write not only the tasks but also the names of the
+tasks and the links to the issues on GitHub").
 
 No logs, diffs or retelling of the QA report or of the review threads: they
 are on the PR page, and kyukhin can ask for details.
@@ -153,16 +167,27 @@ While there is no remote repository, a short commit hash stands in for the PR.
 
 ## Git and GitHub
 
-The committer makes the branch and the commit (the message style is in its
-skill). Everything below you do yourself.
+The committer makes the commit (the message style is in its skill).
+Everything below you do yourself.
 
 - **The history of `master` is linear:** there are no merge commits. Only what
   passed QA gets into `master`, and only through a task branch
-  `kyukhin/NNN-<two-three-words>`. There is no direct push to `master`.
+  `kyukhin/<issue>-<two-three-words>`. There is no direct push to `master`.
+- **The task branch.** Before the developer starts a ticket:
+  `git switch -c kyukhin/<issue>-<two-three-words>` from the fresh `master`,
+  or from the tip of the branch below when kyukhin allowed work before a
+  merge. `<issue>` is the number of the ticket, the words are English and
+  hyphenated: `kyukhin/38-file-content-checks`. The branch is how the next
+  session knows which ticket is in work.
 - **PR.** After the committer's report: `git push -u origin <branch>` and
   `gh pr create` into `master`. The title is the first line of the commit, the
-  description comes from the committer's report. Then comes the review (see
-  "Review of a pull request"); the report to kyukhin follows it.
+  description comes from the committer's report and ends with `Closes #N`, so
+  the merge closes the ticket. Then comes the review (see "Review of a pull
+  request"); the report to kyukhin follows it.
+- **Only against `master`.** A pull request that targets the branch of another
+  pull request is closed by GitHub when that branch is deleted at the merge,
+  and it cannot be reopened or retargeted. A branch that stands on an unmerged
+  one gets its pull request when the one below is merged.
 - **One task, one commit.** A fix after the PR was opened is first a new
   commit by the committer in the same branch. Fold it before you push it:
   `git reset --soft <base>` and one commit with the message of the task's
@@ -218,7 +243,8 @@ required for a merge. QA on kyukhin's Mac decides, and kyukhin's "yes" merges.
      invariant, or is plainly wrong: a bug, a test that cannot fail, a command
      that does not work.
    - **Follow-up:** valid, but outside the acceptance criteria of the task.
-     It becomes a `draft` task proposal under "Notes for later".
+     Record it on GitHub: a line in the follow-ups issue of the epic, or a new
+     issue. "Notes for later" names it.
    - **Kept as is:** wrong, against a recorded decision, or a matter of taste
      that the formatter and the checks own. You can give the reason in one
      sentence, with a reference.
@@ -227,9 +253,9 @@ required for a merge. QA on kyukhin's Mac decides, and kyukhin's "yes" merges.
    architect. If you cannot name the class, it is a defect: never dismiss in
    doubt.
 4. **Defects: one fix round.** Add a section "Review findings" to
-   `docs/qa/TASK-NNN.md` (the date, a link to each thread, what is wrong),
-   move the task back to `in-progress`, then developer → qa → committer: a new
-   commit in the same branch; fold it and push (see "One task, one commit").
+   `docs/qa/NNNN.md` (the date, a link to each thread, what is wrong), then
+   developer → qa → committer: a new commit in the same branch; fold it and
+   push (see "One task, one commit").
    Look for the review of the pushed commit once (steps 1 and 2); a defect in
    it is a stop (rule 9). In a PR with documents only, a defect goes to the
    role that owns the document.
@@ -299,28 +325,75 @@ script, not in the environment.
 Write the brief as if the subagent knows nothing (it really has not seen this
 conversation):
 - the role and the goal in one sentence;
-- a link to the task or epic (`docs/tasks/TASK-NNN-*.md`), to the epic spec
-  (`docs/specs/E-NN-*.md`) and to an ADR if needed;
+- the ticket or the epic by its number (`gh issue view <N> -R kyukhin/clam`),
+  the epic spec (`docs/specs/E-NN-*.md`) and an ADR if needed;
 - what to return (the report format is described in the role's skill);
+- for QA and for a developer who fixes findings: the notes of the developer's
+  last report, as the developer's words and not as facts;
 - special instructions of kyukhin from this conversation, if they concern the task.
-Decisions kyukhin made in the chat are first recorded in documents (PRD, ADR,
-spec, task file): a subagent knows only what is written down.
+Decisions kyukhin made in the chat are first recorded where they belong (PRD,
+ADR, spec, the ticket): a subagent knows only what is written down.
 
 ## Subagent models
 
 The default model and effort are set in the frontmatter of `.claude/agents/*.md`.
-One exception: if the task file says `Complexity: high`, call the developer with
+One exception: if the ticket says `Complexity: high`, call the developer with
 the parameter `model: opus` (keep the effort from the definition). For fixes
 after a QA FAIL use the same model as the first time.
 
-## The single source of truth for statuses
+## The plan lives on GitHub
 
-`docs/plan/BOARD.md`. Task statuses:
-`draft → ready → in-progress → in-review → done`, plus `blocked` with a reason.
-Spec statuses, `planned → draft → approved → implemented`, live in the spec
-header and in the index `docs/specs/README.md`.
-Do not keep state in your head. At the start of every session read BOARD.md and
-tell kyukhin briefly where we are and what is next.
+The plan and the state of the work are on GitHub, in `kyukhin/clam`, as in
+LibreDict (2026-11-28, kyukhin, translated: "We must work by milestones, epics
+and tasks in them. … What is extra (duplicates) must be removed from the code
+base. It must be done as in LibreDict."). No file of the repository holds a
+roadmap, a board, a task or its state.
+
+- **Milestone:** a GitHub milestone, `M0 Skeleton` to `M8 MVP acceptance`. Its
+  description holds the goal, what can be tried and "done when". The current
+  milestone is the first open one. `wishlist` holds the ideas for after the
+  MVP, as issues with the labels `epic` and `idea`.
+- **Epic:** an issue with the label `epic`, titled `Epic E-NN: <name>`, in its
+  milestone, with the sections Goal, Scope, Tickets and Acceptance Criteria.
+  "Tickets" names the spec and lists the tickets in the order of work. The
+  short name `E-NN` stays the name of the epic in specs, ADRs and code.
+- **Ticket:** one task, an issue in the milestone of its epic. Its body starts
+  with `Part of #<epic>.` and follows the template of the architect's skill.
+  A ticket exists only for an approved spec.
+- **A step only kyukhin can do** (an account, a key, a setting of a service)
+  is a ticket assigned to kyukhin.
+
+The state of a ticket is read, not written:
+
+| State | How it shows |
+|---|---|
+| ready | open, no task branch |
+| in work | open, the task branch `kyukhin/<issue>-…` exists, no pull request |
+| in review | open, with an open pull request |
+| done | closed by the merge of its pull request (`Closes #N`) |
+| blocked | the label `blocked`, the reason in a comment |
+
+The spec statuses, `planned → draft → approved → implemented`, live in the
+spec header and in the index `docs/specs/README.md`.
+
+Only you write to GitHub; a subagent reads and never writes. Creating or
+editing a milestone, an epic or a ticket is posting in kyukhin's name: it
+needs kyukhin's word for it or a standing permission (see "Standing
+permissions of kyukhin"). After a merge tick the ticket in the list of its
+epic. When the last ticket of an epic is closed, the epic is closed; when the
+last epic of a milestone is closed, the milestone is closed after the
+milestone report.
+
+Do not keep state in your head. At the start of every session read the plan:
+
+```
+gh api repos/kyukhin/clam/milestones -q '.[] | "\(.title): \(.open_issues) open"'
+gh issue list -R kyukhin/clam --milestone '<the current milestone>' --state all
+gh pr list -R kyukhin/clam
+git branch --no-merged master
+```
+
+and tell kyukhin briefly where we are and what is next.
 
 ## Architectural invariants (from day one)
 
@@ -340,24 +413,29 @@ tell kyukhin briefly where we are and what is next.
 ```
 docs/
   product/PRD.md                 what and why (CPO)
-  plan/ROADMAP.md, BOARD.md      milestones, epics, statuses (PM)
   architecture/OVERVIEW.md       modules and dependencies (Architect)
   architecture/CONTRACTS.md      contracts between modules (Architect)
   architecture/adr/NNNN-*.md     architecture decisions (Architect)
   specs/README.md                spec rules, template, index
   specs/E-NN-*.md                epic spec: behavior, design, test plan
                                  (Architect writes, kyukhin approves)
-  tasks/TASK-NNN-*.md            tasks (Architect creates, Developer adds notes)
-  qa/TASK-NNN.md                 QA reports
+  qa/NNNN.md                     QA report of ticket #N, the number padded
+                                 to four digits (QA)
 CHANGELOG.md                     what changed for the user (Developer)
 ```
+
+The milestones, the epics and the tickets are not here: they are on GitHub.
+The three QA reports written before 2026-11-28 keep their names
+`docs/qa/TASK-001.md` to `TASK-003.md`; their tickets are #35, #36 and #37.
 
 ## What not to do
 
 - Do not do a subagent's work yourself and do not "just slightly fix" code
   after QA. Any edit after QA goes through developer and qa again.
 - Do not widen a task silently. Everything outside the acceptance criteria is a
-  new `draft` task.
+  follow-up: a new issue or a line in the follow-ups issue of the epic.
+- Do not keep the plan, a task or its state in a file of the repository: they
+  live on GitHub.
 - Do not let the code and the spec diverge, and do not fit the spec to the code
   after the fact.
 - Do not change the app to make a test pass: the product matters more, the test

@@ -1,6 +1,6 @@
 ---
 name: project-manager
-description: The Project Manager role of the Clam project. Turns the approved PRD into milestones and epics, keeps the board docs/plan/BOARD.md and the spec statuses, picks the next task, watches the order of the pipeline, the gates and the merging of task branches, sorts out blockers. Use this skill after the PRD is approved, at the start of every working session ("what's next?", "where are we?", "what is left until the MVP?"), when priorities are revised and when a task got stuck or came back from QA. Do not use it for product decisions (that is cpo) or technical ones (that is architect).
+description: The Project Manager role of the Clam project. Turns the approved PRD into milestones and epics, keeps the plan on GitHub (milestones, epic issues, tickets) and the spec statuses, picks the next task, watches the order of the pipeline, the gates and the merging of task branches, sorts out blockers. Use this skill after the PRD is approved, at the start of every working session ("what's next?", "where are we?", "what is left until the MVP?"), when priorities are revised and when a task got stuck or came back from QA. Do not use it for product decisions (that is cpo) or technical ones (that is architect).
 ---
 
 # Project Manager
@@ -13,6 +13,12 @@ You keep order: what we do now, what comes later, who is next in the pipeline.
 You do not invent features and do not choose technologies. Your main weapon is
 small milestones, each of which ends with something kyukhin can put on the
 phone and try.
+
+The plan lives on GitHub, in `kyukhin/clam`: milestones, epic issues and
+tickets (CLAUDE.md, "The plan lives on GitHub"). No file of the repository
+holds a roadmap, a board, a task or its state. The texts of a milestone, an
+epic and a step of kyukhin are in `references/templates.md`; the text of a
+ticket is in the architect's templates.
 
 ## First run (after the PRD is approved)
 
@@ -34,58 +40,79 @@ phone and try.
    - **M4+** By the PRD: speed, sleep timer, offline, a second source.
    Milestone M0 always comes first: the detachability of the source is laid
    down before Telegram.
-3. **Describe the epics** inside the milestones: the name, the goal, links to
-   the MVP items of the PRD, the readiness criterion of the epic. The epic spec
-   and the tasks inside it are written by the architect, who sees the technical
-   dependencies.
-4. Write `docs/plan/ROADMAP.md` and `docs/plan/BOARD.md` from the templates in
-   `references/templates.md`. Add the epics of the first milestone to the index
-   `docs/specs/README.md` as rows with the status `planned`.
-5. **Gate.** Show kyukhin the milestones as one table and the contents of the
+3. **Describe the epics** inside the milestones: the name, the goal, the
+   scope, links to the MVP items of the PRD, the readiness criterion of the
+   epic. The epic spec and the tickets inside it are written by the architect,
+   who sees the technical dependencies.
+4. **Gate.** Show kyukhin the milestones as one table and the contents of the
    first milestone (how to agree it is in CLAUDE.md, "Agreeing documents with
-   kyukhin"). After a "yes" record the date and kyukhin's words in the
-   ROADMAP and hand the work to `architect`, naming the epic: it writes the spec.
+   kyukhin").
+5. After a "yes" create the milestones and the epic issues on GitHub from the
+   templates, with kyukhin's words as a comment on the first epic. Add the
+   epics of the first milestone to the index `docs/specs/README.md` as rows
+   with the status `planned` and hand the work to `architect`, naming the
+   epic: it writes the spec.
 
 ## Every next session
 
-1. Read BOARD.md, the index `docs/specs/README.md`, `git status -sb` and
-   `git branch --no-merged master`. Answer for yourself: what is `in-progress`,
-   what is `in-review`, what is `blocked`, what is `ready`, which specs are in
-   `draft`, whether there is an unmerged task branch.
+1. Read the plan (the commands are in CLAUDE.md, "The plan lives on GitHub"),
+   the index `docs/specs/README.md`, `git status -sb` and
+   `git branch --no-merged master`. Answer for yourself: which milestone is
+   current, which tickets are open, which of them has a task branch, which
+   has a pull request, which is `blocked`, which specs are in `draft`.
 2. Choose the next step, the first matching rule from top to bottom:
    an epic spec in `draft` → stop, kyukhin gate (digest and open questions);
-   a task branch is committed but not merged into `master` → push, PR and
-   merge per CLAUDE.md, "Git and GitHub"; the next task comes after the merge;
-   an uncommitted task with QA PASS → `committer`;
-   a task in `in-review` with QA PASS-PENDING-DEVICE → stop, manual steps for kyukhin;
-   a task in `in-review` → `qa`;
-   a task in `in-progress` → `developer` continues the same task;
-   there is a `ready` task → `developer` takes the first one in order;
-   an epic with an `approved` spec and no tasks → `architect` cuts the tasks;
+   a ticket with an open pull request → the review and the merge per
+   CLAUDE.md, "Git and GitHub"; the next ticket comes after the merge;
+   a task branch that is committed and has no pull request → push and PR, or,
+   if it stands on an unmerged branch, wait for the merge below it;
+   a task branch with uncommitted work whose QA report ends with PASS →
+   `committer`;
+   the same with PASS-PENDING-DEVICE → stop, manual steps for kyukhin;
+   the same with FAIL → `developer` fixes the findings;
+   a task branch with uncommitted work and no verdict on it → `developer`
+   continues the same ticket, then `qa`;
+   an open ticket with no branch whose dependencies are closed → make the
+   task branch, `developer` takes the first one in the order of the epic's
+   list;
+   an epic with an `approved` spec and no tickets → `architect` cuts the
+   tickets;
    an epic without a spec (`planned`) → `architect` writes the spec;
-   the milestone is closed → a short report to kyukhin and a proposal of the
-   next milestone.
-3. One task is in progress at a time. Parallelism only at kyukhin's explicit request.
-4. If kyukhin asked to continue without merging the PR, the next branch is cut
-   from the branch of the previous task. Record this in a note on the board:
-   they will have to be merged in order.
+   every epic of the milestone is closed → a short report to kyukhin and a
+   proposal of the next milestone.
+3. One ticket is in work at a time. Parallelism only within kyukhin's
+   standing permission (CLAUDE.md), and every developer needs a working tree
+   of its own.
+4. If kyukhin asked to continue without merging the PR, the next branch is
+   cut from the branch of the previous ticket. They are merged in order, and
+   the upper one gets its pull request when the lower one is merged.
 
-## Board rules
+## Rules of the plan
 
-- You add epics, change the order, move tasks `draft → ready` and lift
-  `blocked`. A task becomes `ready` only if the spec of its epic is `approved`,
-  the task has acceptance criteria that link to the test plan of the spec, and
-  there are no open questions.
-- A spec went back to `draft`: its `ready` tasks return to `draft` until it is
-  approved again.
-- The other transitions are made by the roles: developer does
-  `ready → in-progress → in-review`, qa does `in-review → in-progress` (FAIL),
-  committer does `in-review → done` (after QA PASS).
+- Only the dispatcher writes to GitHub. Subagents read.
+- **A ticket is created ready.** The architect drafts the tickets of an
+  approved spec. Create the issue of a draft only if the spec of its epic is
+  `approved`, the ticket has acceptance criteria that link to the test plan
+  of the spec, and there are no open questions. The issue goes into the
+  milestone of its epic with `Part of #<epic>.` in the first line; then add
+  it to the list "Tickets" of the epic and write its number into the spec
+  header (`Tickets: #A (T1), #B (T2)`).
+- A spec went back to `draft`: its tickets stay open, and none of them is
+  started until it is approved again.
+- A ticket is closed by the merge of its pull request, not by hand. After the
+  merge tick it in the list of its epic. A ticket that will not be done is
+  closed as "not planned" at kyukhin's word, with the reason in a comment.
+- `blocked` is the label plus a comment: the reason, since when, who
+  unblocks. Remove the label when the reason is gone.
+- A step only kyukhin can do is a ticket assigned to kyukhin, listed in its
+  epic under "Steps only kyukhin can do". Name the open ones in a report when
+  they begin to hold the work.
+- A follow-up from QA, the review or a developer goes into the follow-ups
+  issue of the epic; a follow-up that is a task of its own becomes a ticket
+  through the architect.
 - You change the spec status after kyukhin's words: the spec header, the
   index `docs/specs/README.md`, a line in "History" with the date and
   kyukhin's words in English translation.
-- Every transition is a row in the log at the end of BOARD.md: the date, the
-  task, the transition, who.
 - A task that came back from QA twice is a signal. Check whether the criteria
   are vague and, if needed, return it to the architect for clarification.
 
@@ -98,6 +125,6 @@ and no hour estimates unless kyukhin asks for them.
 ## Changes along the way
 
 A new idea in the middle of a milestone does not get into the current milestone
-automatically. Record it as a `draft` epic in "Later" and offer kyukhin a
-choice: finish the milestone or switch (then it is a CPO decision and the PRD is
-updated).
+automatically. Record it as an issue with the labels `epic` and `idea` in the
+milestone `wishlist` and offer kyukhin a choice: finish the milestone or switch
+(then it is a CPO decision and the PRD is updated).

@@ -1,6 +1,6 @@
 # E-01: Stack and project skeleton
 
-> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Tasks: none yet · Updated: 2026-11-27
+> Status: approved by kyukhin 2026-11-27 · Milestone: M0 · Epic: #6 · Tickets: none yet · Updated: 2026-11-28
 
 Read first: `docs/architecture/OVERVIEW.md`; ADR-0001 (stack), ADR-0002
 (modules) and ADR-0005 (the review of every pull request), all accepted on
@@ -21,8 +21,9 @@ onto kyukhin's phone. E-01 covers no MVP item. It prepares:
 - PRD §3: a public repository; no third-party code that sends data anywhere.
 - Invariant 4 in CLAUDE.md: secrets never get into git.
 - PRD §11: Clam builds from a clean clone.
-- Roadmap, M0: kyukhin installs a build from TestFlight, every check passes on
-  a clean clone on kyukhin's Mac, and a PR gets the free checks on GitHub.
+- Milestone M0 on GitHub, "Done when": kyukhin installs a build from
+  TestFlight, every check passes on a clean clone on kyukhin's Mac, and a PR
+  gets the free checks on GitHub.
 
 ## Behavior
 
@@ -91,7 +92,9 @@ it.
 
 ### What kyukhin does by hand, once
 
-Nobody else can do K1 to K5, K7 and K8. K6 is done.
+Nobody else can do K1 to K5, K7 and K8. K6 is done. Whether the others are
+done is the state of their issues on GitHub, assigned to kyukhin: #40 (K1),
+#41 (K2 to K5 and K7) and #42 (K8).
 
 - **K1. The Mac.** Update macOS to 26.6 or a later 26.x (it is 26.5.2) and
   install Xcode 27.x, before the first task of this epic; `xcode-select`
@@ -369,7 +372,8 @@ on the tool's sources once.
    a failure it stays and its path is printed.
 
 For a working tree without changes the copy holds the same files as a fresh
-`git clone` of `HEAD`: this is the "clean clone" of the roadmap and of PRD §11.
+`git clone` of `HEAD`: this is the "clean clone" of milestone M0 and of PRD
+§11.
 For a task that is not committed yet it holds what the commit of the task will
 contain, so QA checks it before the commit.
 
@@ -579,7 +583,7 @@ Review (E-15).
 C6 and C8 moved to E-03 whole, and so did a part of C9. Their rows keep their
 numbers and name the criteria of E-03 that replaced them.
 
-| No. | Acceptance criterion | Task | Proved by |
+| No. | Acceptance criterion | Ticket | Proved by |
 |---|---|---|---|
 | C1 | `make clean-check` passes on the repository: in a clean copy, without `Config/Local.xcconfig` and with Xcode 27 as the only tool outside macOS, every step of `make check` passes | — | by hand by QA: the command and its output. Second line: the `check` job on a fresh GitHub runner |
 | C2 | `make test` runs the unit tests of every module of `Packages/ClamKit` on a simulator and exits with an error when a test fails | — | unit: the tests of the version model; by hand by QA: break one assertion and see the error exit |
@@ -698,3 +702,13 @@ Question 5 is closed with option (a), by kyukhin's "yes" of 2026-11-27:
     that Xcode writes; the formatter covers the sources of the tool; the time
     limits of the two jobs, 30 and 20 minutes; no path filter in
     `.coderabbit.yaml`.
+- 2026-11-28: the plan and the tasks moved from files of the repository to
+  GitHub, on kyukhin's words: "This does not fit, it is all wrong. We must
+  work by milestones, epics and tasks in them." References are updated, with
+  no change of behavior or design; the status stays `approved`. The header
+  names the epic issue, #6, and says "Tickets"; the column of the test plan
+  is "Ticket". "Why" and "The clean copy" name milestone M0 on GitHub, where
+  the text of the roadmap is now. "What kyukhin does by hand, once" names the
+  issues of K1 to K5, K7 and K8. The entry of "Decisions" that cites the
+  roadmap keeps its wording; those words of kyukhin are now in the epic issue
+  of E-03, #8.

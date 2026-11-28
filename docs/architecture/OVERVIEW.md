@@ -6,23 +6,23 @@
 
 Read this file before every task. Each part below is marked **exists** or
 **decided**. A decided part names the document that owns it and the epic that
-makes it real; this file does not repeat that document. The statuses of tasks
-and specs are not here: `docs/plan/BOARD.md` and the index in
-`docs/specs/README.md` own them.
+makes it real; this file does not repeat that document. The state of tickets
+and the statuses of specs are not here: the issues of `kyukhin/clam` on GitHub
+own the first, the index in `docs/specs/README.md` the second.
 
 ## What exists
 
 | What | Where | Note |
 |---|---|---|
 | The kit | `CLAUDE.md`, `.claude/agents/`, `.claude/skills/` | The pipeline of roles, its gates and the git rules |
-| Product and plan | `docs/product/PRD.md`, `docs/plan/ROADMAP.md`, `docs/plan/BOARD.md` | The milestone is M0; its order is E-03, E-01, E-04, E-02 |
+| Product and plan | `docs/product/PRD.md`; the plan is on GitHub, in `kyukhin/clam`: milestones, an issue for every epic and an issue, a ticket, for every task (CLAUDE.md, "The plan lives on GitHub") | The milestone is M0; its order is E-03, E-01, E-04, E-02. No file of the repository holds the plan or the state of a ticket (kyukhin, 2026-11-28) |
 | Decisions | `docs/architecture/adr/`: ADR-0001 (stack), ADR-0002 (modules), ADR-0005 (review) | All accepted on 2026-11-27. The numbers 0003 (the source contract) and 0004 (track identity and the position store) are kept for E-02 |
 | Specs | `docs/specs/`: E-01, E-03 | Both approved on 2026-11-27, neither implemented |
 | `LICENSE` | the root | MIT |
 | `README.md` | the root | Describes the kit, not the app. E-04 rewrites it |
-| `.gitignore` | the root | Written before the stack was chosen; TASK-002 added the lines for the tool's build output and the editor's files. TASK-004 rewrites it |
+| `.gitignore` | the root | Written before the stack was chosen; #36 added the lines for the tool's build output and the editor's files. #38 rewrites it |
 | `Makefile` | the root | `lint`, `test-tools`, `check`. Spec E-03, "Commands" |
-| `Tools/ClamChecks` | | The check tool `clam-checks`: a Swift package for macOS with tests, no dependency. It has the command `whitespace`; the other three wait for TASK-004. Spec E-03, "The check tool" |
+| `Tools/ClamChecks` | | The check tool `clam-checks`: a Swift package for macOS with tests, no dependency. It has the command `whitespace`; the other three wait for #38. Spec E-03, "The check tool" |
 | `.github/workflows/ci.yml` | | The workflow with the job `check`, which runs `make check` on the `xcode-27` runner for a pull request into `master` and a push to `master`. The job `compat` is decided for E-01. Spec E-03, "Checks on GitHub: the second line" |
 | `.coderabbit.yaml` | the root | The settings of the review bot. Spec E-03, "`.coderabbit.yaml`". The bot reads it only after kyukhin adds `clam` to its installation (spec E-03, H1) |
 | The repository `kyukhin/clam` on GitHub | | Public. Its settings are in force, see "GitHub" |
@@ -36,7 +36,7 @@ first task that changes something for the user creates it).
 "Commands"). `make lint` runs the check `whitespace`; `make test-tools` runs the
 tests of the tool; `make check` prints the Swift version, then runs both. The
 developer runs `make check`. The other three checks of E-03 (language, files
-that must not be tracked, secrets) are decided and wait for TASK-004. The skills
+that must not be tracked, secrets) are decided and wait for #38. The skills
 of QA (steps 11 and 12) and of the committer ("File hygiene" and "Final check
 before the commit") still hold their own commands; the dispatcher changes them.
 
@@ -44,7 +44,7 @@ before the commit") still hold their own commands; the dispatcher changes them.
 
 | Commands | Owner | Made real by |
 |---|---|---|
-| The three checks of the files that `make lint` does not run yet: language, files that must not be tracked, secrets | spec E-03, "The four checks" | TASK-004 |
+| The three checks of the files that `make lint` does not run yet: language, files that must not be tracked, secrets | spec E-03, "The four checks" | #38 |
 | `make build`, `make test`, `make ui-test`, `make format`, `make archive`, `make clean-check`, `make testflight`. `make lint` and `make check` grow: the formatter, the boundary and dependency checks, the build, the tests, the archive | spec E-01, "Commands" | E-01 |
 
 Who runs what, once it exists. The developer: `make check`. QA and the
@@ -122,7 +122,7 @@ that brings them (M2).
 | Part | State | Owner |
 |---|---|---|
 | The repository settings: a ruleset `master` (a pull request required, merges by rebase only, no required check), secret scanning with push protection, Dependabot, a read-only Actions token, no Actions secrets | **Exists,** in force since 2026-11-27 | spec E-03, "GitHub settings" |
-| The workflow `.github/workflows/ci.yml` with the job `check`, later also `compat` | `check`: **Exists** (TASK-003), its first run is the one on the pull request of that task. `compat`: **Decided,** E-01 adds it | specs E-03 and E-01, "Checks on GitHub: the second line" |
+| The workflow `.github/workflows/ci.yml` with the job `check`, later also `compat` | `check`: **Exists** (#37), its first run is the one on the pull request of that ticket. `compat`: **Decided,** E-01 adds it | specs E-03 and E-01, "Checks on GitHub: the second line" |
 | The review of every pull request by CodeRabbit | **Decided.** E-03 makes it real. Its settings file `.coderabbit.yaml` exists (spec E-03, "`.coderabbit.yaml`"). The bot sees `clam` only from H1, when kyukhin adds the repository to its installation; H1 waits for the pull request with that file (spec E-03, H1) | ADR-0005; the steps are in CLAUDE.md, "Review of a pull request" |
 
 The jobs and the review are a second line, and neither is required for a

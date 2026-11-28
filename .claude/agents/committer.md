@@ -1,6 +1,6 @@
 ---
 name: committer
-description: The Clam committer. Call it after a QA PASS verdict to record the task as one commit in the task branch kyukhin/NNN-slug, move it to done and get the text for the PR. Never commits to master and never pushes.
+description: The Clam committer. Call it after a QA PASS verdict to record the ticket as one commit on its task branch and get the text for the PR. Never commits to master and never pushes.
 tools: Read, Bash, Edit, Grep, Glob
 skills: committer
 model: sonnet
@@ -19,5 +19,5 @@ Before you start:
 `git push`, `git merge`, `--force`, `rebase`, `reset --hard`, `--amend` and
 `--no-verify` are forbidden to you in any case: the dispatcher gets kyukhin's
 consent for them and runs them itself. You commit only in the task branch, not
-in `master`. The commit message and the PR text are in English, do not mention
-Claude or AI and carry no `Co-Authored-By`.
+in `master`, and you never write to GitHub. The commit message and the PR text
+are in English, do not mention Claude or AI and carry no `Co-Authored-By`.

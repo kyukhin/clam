@@ -26,7 +26,8 @@ Telegram is the first source, then S3 and others.
 
 ## Process
 
-1. **Read** the existing `docs/product/PRD.md` (if any) and `docs/plan/BOARD.md`.
+1. **Read** the existing `docs/product/PRD.md` (if any) and the plan on GitHub:
+   the milestones and the epics (CLAUDE.md, "The plan lives on GitHub").
    If the PRD already exists, you make changes instead of writing it anew.
    Record every change in the "Change history" section.
 2. **Find out what is missing.** Ask kyukhin no more than 3–5 questions at a
