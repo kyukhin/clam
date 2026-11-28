@@ -1,14 +1,14 @@
 # Board
 
 Current milestone: M0
-Next role: kyukhin (merging PR #2 and PR #3, then H1 and H2 on the PR of TASK-001; then the PR of TASK-002)
+Next role: dispatcher (the pull request of TASK-003 and the run of its job `check`); kyukhin (H1 and H2 for PR #5 of TASK-001; then the PR of TASK-002)
 
 | Task | Epic | Status | Role now | Note |
 |---|---|---|---|---|
 | TASK-001 Add `.coderabbit.yaml`, the settings of the review bot | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-001.md`); fixed after QA check 1 (B1, N1). depends on nothing; goes first; after its PR is opened: kyukhin's H1 and H2, then C10 of the spec by hand |
 | TASK-002 Create the check tool with the `whitespace` check, and `make check` | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-002.md`); fixed after QA check 1 (B1, N1); spec changed (small details, History). depends on nothing; worked on top of the branch of TASK-001 before its merge (kyukhin, 2026-11-28), merged after it |
-| TASK-003 Add the `check` job on GitHub | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-004 is; C12 of the spec by hand on its PR |
-| TASK-004 Add the `tracked-files`, `language` and `secrets` checks | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-003 is |
+| TASK-003 Add the `check` job on GitHub | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-003.md`); fixed after QA check 1 (B1); spec changed (small detail, History). AC3 is the dispatcher's: the run on the PR and the push runs after merges (report, "On the pull request and after merges"). depends on TASK-002; can be worked while TASK-004 is; C12 of the spec by hand on its PR |
+| TASK-004 Add the `tracked-files`, `language` and `secrets` checks | E-03 | ready | developer | depends on TASK-002; can be worked while TASK-003 is |
 
 ## Blocked
 | Task | Reason | Since | Who unblocks |
@@ -29,11 +29,16 @@ What only kyukhin can do. None of them blocks a task yet.
 | Submit Clam to App Review from kyukhin's Apple account | M5 | not started |
 
 ## Notes
-- PR #1 with the planning documents is merged (2026-11-27). The review step
-  and the delivery rules of the kit are PR #2 (`kyukhin/000-review-kit`); the
-  tasks of E-03, the aligned specs and the OVERVIEW are in
-  `kyukhin/000-m0-tasks`, stacked on it. kyukhin answered the questions about
-  the kit wording on 2026-11-28; the answers are in CLAUDE.md.
+- Merged into `master`: PR #1 with the planning documents (2026-11-27); PR #2
+  with the review step and the delivery rules of the kit, and PR #4 with the
+  tasks of E-03, the aligned specs and the OVERVIEW (both 2026-11-28). PR #4
+  replaced PR #3 with the same patch.
+- A pull request that targets the branch of another pull request is closed by
+  GitHub when that branch is deleted at the merge, and it cannot be reopened
+  or retargeted afterwards. Open a pull request against `master` only, after
+  the one below it is merged, or retarget it to `master` before that merge.
+- The branches of TASK-001 and TASK-002 stand on each other: PR #5 is
+  TASK-001; the pull request of TASK-002 is opened when PR #5 is merged.
 - For the architect's next call on ADR-0005 and the E-03 spec: align the text
   about the moment of the fold with kyukhin's decision of 2026-11-28 (a fix is
   folded before it is pushed).
@@ -95,3 +100,15 @@ What only kyukhin can do. None of them blocks a task yet.
 | 2026-11-28 | TASK-002 | in-progress → in-review: B1 and N1 of QA check 1 fixed | developer |
 | 2026-11-28 | TASK-002 | QA PASS (check 2), stays in-review; committer next | qa |
 | 2026-11-28 | TASK-002 | in-review → done, branch `kyukhin/002-check-tool` | committer |
+| 2026-11-28 | PR #2 | merged into `master`: "yes 1 2 3" to "Do we merge PR #2 (the kit)?" | kyukhin |
+| 2026-11-28 | PR #4 | merged into `master` in place of PR #3, same patch: "yes 1 2 3" to "Do we merge PR #3 (documents and tasks) right after it?" | kyukhin |
+| 2026-11-28 | TASK-001 | PR #5 opened; the review waits for kyukhin's H1 | project-manager |
+| 2026-11-28 | TASK-003 | draft → ready; started on top of the branch of TASK-002, before its merge: "yes 1 2 3" to "Do I start TASK-003 without waiting for the merge?" | project-manager |
+| 2026-11-28 | TASK-004 | draft → ready | project-manager |
+| 2026-11-28 | TASK-003 | ready → in-progress | developer |
+| 2026-11-28 | TASK-003 | in-progress → in-review | developer |
+| 2026-11-28 | TASK-003 | in-review → in-progress: QA FAIL, see the report (all pushes to `master` share one concurrency group, so a pending run is cancelled by the next push) | qa |
+| 2026-11-28 | TASK-003 | in-progress: developer fixes B1 of QA check 1 (`docs/qa/TASK-003.md`) | developer |
+| 2026-11-28 | TASK-003 | in-progress → in-review: B1 of QA check 1 fixed | developer |
+| 2026-11-28 | TASK-003 | QA PASS (check 2), stays in-review; committer next | qa |
+| 2026-11-28 | TASK-003 | in-review → done, branch `kyukhin/003-github-check-job`, on top of `kyukhin/002-check-tool` | committer |

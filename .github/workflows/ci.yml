@@ -1,0 +1,30 @@
+# The second line of checks: it repeats `make check` on a fresh GitHub runner. It is not
+# required for a merge. Spec: docs/specs/E-03-automated-code-review.md, "Checks on GitHub:
+# the second line".
+name: ci
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# A newer run for the same pull request cancels the older one: the group is the pull request
+# number. A push to master has no pull request, so its group is its own run id: no other run
+# shares it, and every push to master gets its own result.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: xcode-27
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: make check

@@ -1,6 +1,6 @@
 # TASK-004: Add the `tracked-files`, `language` and `secrets` checks
 
-Epic: E-03 | Milestone: M0 | Status: draft
+Epic: E-03 | Milestone: M0 | Status: ready
 Depends on: TASK-002
 Complexity: normal
 Spec: docs/specs/E-03-automated-code-review.md § "The four checks" (`language`, `tracked-files`, `secrets`), "The check tool", "What GitHub's scanner does not see", test plan C1, C3, C4, C5 and C6 (approved 2026-11-27)
