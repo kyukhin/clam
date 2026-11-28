@@ -20,6 +20,7 @@ and specs are not here: `docs/plan/BOARD.md` and the index in
 | `LICENSE` | the root | MIT |
 | `README.md` | the root | Describes the kit, not the app. E-04 rewrites it |
 | `.gitignore` | the root | Written before the stack was chosen. E-03 rewrites it |
+| `.coderabbit.yaml` | the root | The settings of the review bot. Spec E-03, "`.coderabbit.yaml`". The bot reads it only after kyukhin adds `clam` to its installation (spec E-03, H1) |
 | The repository `kyukhin/clam` on GitHub | | Public. Its settings are in force, see "GitHub" |
 
 Not there yet: `docs/architecture/CONTRACTS.md` (E-02) and `CHANGELOG.md` (the
@@ -114,7 +115,7 @@ that brings them (M2).
 |---|---|---|
 | The repository settings: a ruleset `master` (a pull request required, merges by rebase only, no required check), secret scanning with push protection, Dependabot, a read-only Actions token, no Actions secrets | **Exists,** in force since 2026-11-27 | spec E-03, "GitHub settings" |
 | The workflow `.github/workflows/ci.yml` with the job `check`, later also `compat` | **Decided.** E-03 creates it, E-01 adds `compat` | specs E-03 and E-01, "Checks on GitHub: the second line" |
-| The review of every pull request by CodeRabbit | **Decided.** E-03 makes it real. The bot does not cover `clam` yet: kyukhin adds the repository when the pull request with `.coderabbit.yaml` is open (spec E-03, H1) | ADR-0005; the steps are in CLAUDE.md, "Review of a pull request" |
+| The review of every pull request by CodeRabbit | **Decided.** E-03 makes it real. Its settings file `.coderabbit.yaml` exists (spec E-03, "`.coderabbit.yaml`"). The bot sees `clam` only from H1, when kyukhin adds the repository to its installation; H1 waits for the pull request with that file (spec E-03, H1) | ADR-0005; the steps are in CLAUDE.md, "Review of a pull request" |
 
 The jobs and the review are a second line, and neither is required for a
 merge. The checks on kyukhin's Mac decide whether a task is done, and

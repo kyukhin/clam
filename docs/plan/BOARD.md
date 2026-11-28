@@ -1,11 +1,11 @@
 # Board
 
 Current milestone: M0
-Next role: developer (TASK-001), then qa and committer; kyukhin (answers about the kit wording: moving branches onto a fresh `master`, the delivery rules, the moment of the fold)
+Next role: dispatcher (push and PR of TASK-001); kyukhin (answers about the kit wording: moving branches onto a fresh `master`, the delivery rules, the moment of the fold)
 
 | Task | Epic | Status | Role now | Note |
 |---|---|---|---|---|
-| TASK-001 Add `.coderabbit.yaml`, the settings of the review bot | E-03 | ready | developer | depends on nothing; goes first; after its PR is opened: kyukhin's H1 and H2, then C10 of the spec by hand |
+| TASK-001 Add `.coderabbit.yaml`, the settings of the review bot | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-001.md`); fixed after QA check 1 (B1, N1). depends on nothing; goes first; after its PR is opened: kyukhin's H1 and H2, then C10 of the spec by hand |
 | TASK-002 Create the check tool with the `whitespace` check, and `make check` | E-03 | ready | developer | depends on nothing; can be worked while TASK-001 is; its branch is cut after TASK-001 is in `master` |
 | TASK-003 Add the `check` job on GitHub | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-004 is; C12 of the spec by hand on its PR |
 | TASK-004 Add the `tracked-files`, `language` and `secrets` checks | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-003 is |
@@ -81,3 +81,9 @@ What only kyukhin can do. None of them blocks a task yet.
 | 2026-11-27 | E-01 | the spec aligned with the seam to E-03 and with the GitHub settings in force, still approved; OVERVIEW written | architect |
 | 2026-11-27 | TASK-001 | draft → ready | project-manager |
 | 2026-11-27 | TASK-002 | draft → ready | project-manager |
+| 2026-11-27 | TASK-001 | ready → in-progress | developer |
+| 2026-11-27 | TASK-001 | in-progress → in-review | developer |
+| 2026-11-27 | TASK-001 | in-review → in-progress: QA FAIL, see the report (`path: "**"` skips dot-paths under Minimatch defaults) | qa |
+| 2026-11-27 | TASK-001 | in-progress → in-review: B1 and N1 of QA check 1 fixed | developer |
+| 2026-11-27 | TASK-001 | QA PASS (check 2), stays in-review; committer next | qa |
+| 2026-11-27 | TASK-001 | in-review → done, branch `kyukhin/001-coderabbit-config` | committer |

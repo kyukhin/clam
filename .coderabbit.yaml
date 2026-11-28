@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Settings of the review bot. The reasons are in docs/specs/E-03-automated-code-review.md.
+# `version` is not in the published schema, so an editor flags it; CodeRabbit accepts it.
+version: 2
+language: en-US
+reviews:
+  # Keep the summary in the bot's own comment; the PR description stays untouched.
+  high_level_summary_in_walkthrough: true
+  auto_approvals:
+    # The bot never approves.
+    enabled: false
+  tools:
+    swiftlint:
+      # The linter of the project is swift format (ADR-0001).
+      enabled: false
+  path_instructions:
+    # Every path, dot-files and dot-directories included, with Minimatch's dot option on or off:
+    # a plain ** skips them when it is off. Covers up to four dot segments in one path.
+    - path: '{**,{**/,}.*{/**,},{**/,}.*/{**/,}.*{/**,},{**/,}.*/{**/,}.*/{**/,}.*{/**,},{**/,}.*/{**/,}.*/{**/,}.*/{**/,}.*{/**,}}'
+      instructions: |
+        Decisions recorded in docs/architecture/adr/ and in the specs under docs/specs/ are not up for review. Do not propose another stack, another linter, another dependency or another CI service.
+
+        Everything in this repository is in English. Report Cyrillic or Greek text anywhere except the four localization paths: Packages/ClamKit/Sources/Localization/Resources/Localizable.xcstrings, App/InfoPlist.xcstrings, AppStore/metadata/ru/ and AppStore/metadata/el/.
+
+        Report anything that looks like a credential, a session file or a signing file: an api_id or api_hash with a value, a token, a private key, a certificate, a provisioning profile, a TDLib database.
+
+        Report an import of a concrete source module (any module whose name starts with Source, except SourceAPI) or of a skin module (any module whose name starts with Skin) in any module except the app target. SourceAPI is the contract, not a concrete source, so importing it is not a violation of this rule. A test target may import SourceFake; only the tests of SourceTelegram may import SourceTelegram.
+knowledge_base:
+  learnings:
+    scope: local
+  issues:
+    scope: local
+  pull_requests:
+    scope: local
