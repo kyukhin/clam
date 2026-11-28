@@ -1,6 +1,6 @@
 # TASK-002: Create the check tool with the `whitespace` check, and `make check`
 
-Epic: E-03 | Milestone: M0 | Status: ready
+Epic: E-03 | Milestone: M0 | Status: done
 Depends on: none
 Complexity: normal
 Spec: docs/specs/E-03-automated-code-review.md § "Layout", "Commands", "The check tool", "The four checks" (`whitespace` and the last paragraph), test plan C2, C5 and C6 (approved 2026-11-27)
@@ -85,18 +85,18 @@ Must not be touched: `CLAUDE.md`, `.claude/`, `.coderabbit.yaml`, `.github/`,
 `language`, `tracked-files` and `secrets` are TASK-004.
 
 ## Acceptance criteria
-- [ ] AC1 (C5): the checked set. In a temporary git repository `whitespace`
+- [x] AC1 (C5): the checked set. In a temporary git repository `whitespace`
       checks a tracked file with the content it has on disk now and an
       untracked file that git does not ignore; it does not check a file that
       git ignores: a violation in it passes. A tracked file that is deleted
       from the working tree is skipped without an error. A file whose name
       holds a space and a non-ASCII letter is reported under its exact path.
       Run in a subdirectory, the tool checks the whole repository.
-- [ ] AC2 (C5): a file with a NUL byte is binary, and its content is not
+- [x] AC2 (C5): a file with a NUL byte is binary, and its content is not
       checked. A symbolic link is never opened: a link passes when it points
       to a file with violations that is itself outside the checked set, and
       so do a dangling link and a link to a directory.
-- [ ] AC3 (C5): output and exit status. One line per violation,
+- [x] AC3 (C5): output and exit status. One line per violation,
       `path:line:column: check: message`, or `path: check: message` for a
       whole file; the path is relative to the root of the repository; line
       and column start at 1 and the column counts bytes; the lines are sorted
@@ -105,15 +105,15 @@ Must not be touched: `CLAUDE.md`, `.claude/`, `.coderabbit.yaml`, `.github/`,
       with violations, and 2 for an unknown command, for no command and for a
       directory that is not in a git repository. A test covers each form of
       the line and each exit status.
-- [ ] AC4 (C2): `whitespace` reports each of W1 to W6, with at least one test
+- [x] AC4 (C2): `whitespace` reports each of W1 to W6, with at least one test
       per rule; W5 is reported for a file with no line feed at its end and
       for a file with more than one. It passes on a tab in `Makefile` and in
       a `*.mk` file, on an empty file and on a file that ends with exactly
       one line feed. It rewrites nothing.
-- [ ] AC5 (C2): `make lint` passes on the repository. `docs/product/PRD.md`
+- [x] AC5 (C2): `make lint` passes on the repository. `docs/product/PRD.md`
       ends with one line feed and no other byte of it changed. `.gitignore`
       has the four new lines and lost none.
-- [ ] AC6 (C6): `make lint` runs every check the tool has, which is
+- [x] AC6 (C6): `make lint` runs every check the tool has, which is
       `whitespace` after this task, and exits with an error if a check
       failed. `make test-tools` runs the tests of the tool. `make check` runs
       `lint`, then `test-tools`; it first prints the version of the Swift it
@@ -123,14 +123,14 @@ Must not be touched: `CLAUDE.md`, `.claude/`, `.coderabbit.yaml`, `.github/`,
       request. No stored file of the tool breaks a check: a test builds every
       fixture with a violation at run time, in a temporary directory that it
       removes.
-- [ ] `docs/architecture/OVERVIEW.md` is current. The opening note says that
+- [x] `docs/architecture/OVERVIEW.md` is current. The opening note says that
       the first checks exist and that nothing of the app does; it does not
       mention the workflow, so that TASK-003 and TASK-004 need not change it.
       "What exists" has the `Makefile` and `Tools/ClamChecks`. "Commands"
       says that the three commands exist, that `make lint` runs `whitespace`,
       and that the other three checks are decided and wait for TASK-004.
       Pointers to the spec, no copy of its text.
-- [ ] All tests pass; `make check` is green with no new warnings.
+- [x] All tests pass; `make check` is green with no new warnings.
 
 ## How to verify
 QA, on kyukhin's Mac, in the root of the repository:
@@ -180,4 +180,134 @@ TASK-003.
   dispatcher's.
 
 ## Developer notes
-(filled in by the developer: decisions along the way, deviations, what is left)
+Plan:
+1. The package `Tools/ClamChecks` (library target with the logic, thin
+   executable, Swift Testing test target) and the plumbing: git root, the
+   checked set, `lstat` kinds, output and exit statuses; with a stub
+   `whitespace` check.
+2. Tests first: the tests of AC1 to AC4 against the stub; see the plumbing
+   tests pass and the rule tests fail.
+3. The rules W1 to W6 and the one place for the exceptions.
+4. `Makefile`, `.gitignore`, the final line feed of the PRD.
+5. OVERVIEW, the spec's "Proved by" cells and "History", the board.
+6. Every command of "How to verify", the manual steps and a mutation of my own.
+
+Done:
+- `Tools/ClamChecks/`: manifest (tools version 6.0, language mode 6, macOS 14,
+  no dependency), three targets: the library `ClamChecksCore` (all the logic),
+  the executable `clam-checks` (`main.swift` only wires the two streams and
+  `exit`), the Swift Testing target `ClamChecksCoreTests`.
+- `Makefile`: `lint`, `test-tools`, `check`. `-Xswiftc -warnings-as-errors` is
+  passed to every `swift build` and `swift test`, so a warning in the tool or
+  in its tests fails the command. `lint` builds the tool, then runs every name
+  in `CHECKS` (one place; TASK-004 adds the other three) and exits with an
+  error if any failed. `check` prints `swift --version`, then `lint`, then
+  `test-tools` through sub-makes (GNU Make 3.81, no `.ONESHELL`; the order
+  holds with `make -j` too).
+- `.gitignore` (four lines added), `docs/product/PRD.md` (one line feed).
+- Tests first: the plumbing and the rule tests were written against a stub
+  `whitespace` that reports nothing: 71 tests, 64 issues; then the rules went
+  in and all passed. The final count is 72 tests (one more for the two
+  messages of W5).
+
+Decisions of mine, inside the change scope:
+- Layout of the library, for TASK-004: `GitRepository` (git root and the
+  checked set from `git ls-files -z --cached --others --exclude-standard
+  --deduplicate`, run in the root, so a subdirectory is no different), then
+  `CheckedFile.inspect` (`lstat`, never `stat`: `kind` is `.regular(size:)`,
+  `.symbolicLink` or `.other`, so TASK-004 gets the size without reading and
+  the link by its name), `CheckedFile.textContent()` (nil for a link, a
+  non-regular file and a file with a NUL byte; opens with `O_NOFOLLOW`).
+  A check is a `Check` (`name`, `violations(in:)`); `CommandLineTool.checks`
+  is the list of commands.
+- Names stay raw bytes from `-z` until they are shown, so a space, a quote and
+  a non-ASCII letter are kept as on disk.
+- Where a violation sits: W1 at the first byte of the trailing run; W2 at the
+  first tab of the line; W3 at the first carriage return of the line; W4 at
+  1:1; W6 at the first invalid byte; W5 has no position. W2 and W3 give one
+  line per line that has the character, not one per character. A carriage
+  return before the line feed does not hide a space before it from W1 (git's
+  `cr-at-eol` view). A BOM is only looked for at the start of the file.
+- Order: path by its UTF-8 bytes (so `a.txt` before `a/b.txt`), then line; a
+  violation without a position (W5) comes before the lines of its file.
+- W5 has two messages (no line feed / more than one), same rule number.
+- Messages start with the rule number (`W1 trailing space or tab`).
+- The exceptions of W2 are `WhitespaceCheck.exceptions`, one list, each entry
+  one rule and one name pattern (`Makefile` or `*.mk` by the last component of
+  the path, at any depth).
+- A file that cannot be read (or a `lstat` error other than "not there") is
+  printed to standard error as `clam-checks: path: cannot read: reason`, the
+  run goes on with the other files and ends with status 2. The spec names 2
+  only for a wrong call and for a directory outside a git repository; this is
+  the same kind of "the tool could not do its job" and is recorded in the
+  spec ("Exit status", History).
+- The tests never touch the user's git settings: every git process of a test
+  gets `HOME`, `XDG_CONFIG_HOME`, `GIT_CONFIG_GLOBAL=/dev/null`,
+  `GIT_CONFIG_NOSYSTEM=1` and `GIT_CEILING_DIRECTORIES`, with every other
+  `GIT_*` variable removed; a test of "git decides" gives git a global
+  excludes file that lies in the temporary directory. No test commits, so no
+  identity is needed.
+- The tool itself uses the environment it is given (so the user's excludes
+  file counts, as the spec says); `main.swift` hands it the real one.
+- `make test-tools` uses `swift test`, not `xcodebuild`: the tool is a package.
+
+Not done and why: nothing of the criteria is left. The proof with Xcode 27 is
+TASK-003's. The parts of `main.swift` that map the two closures to file
+descriptors 1 and 2 have no test of their own (the streams are tested through
+`OutputStreams`); QA's manual step for AC3 runs the real binary.
+
+Proposals for later (no task made): none.
+
+Checks run (all on kyukhin's Mac, Xcode 26.4, Swift 6.3):
+- `make check`: exit 0, the Swift version first, 0 warnings, 72 tests passed.
+- `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 make test-tools`: exit 0.
+- `git status --short`: only files of the change scope; `cmp` of the PRD: no
+  output; the diff of `.gitignore`: four lines added, none removed.
+- By hand: `zz-ws.txt` with a trailing space made `make lint` print
+  `zz-ws.txt:1:2: whitespace: W1 ...` and fail, and it passed again after the
+  file was removed. An unused variable in `Check.swift` made `make check`
+  fail with a compiler error; restored. The built tool with an unknown command,
+  with no command and in a new directory under `$TMPDIR`: exit 2, nothing on
+  standard output; run from `Tools/ClamChecks`: exit 0 over the whole
+  repository.
+- Mutations, each then restored: W1 without tabs (6 tests failed); no
+  `--exclude-standard` (6+ tests failed); no `--others` (6+ tests failed);
+  a link treated as a regular file and `O_NOFOLLOW` removed (7 tests failed).
+- `swift format lint --strict -r Tools` prints nothing (not a criterion here).
+
+Return from QA, check 1 (`docs/qa/TASK-002.md`), B1 and N1:
+- B1: `lstat` and `O_NOFOLLOW` only stop a link in the last component, so a
+  tracked folder replaced by a link was read through the link. Tests first
+  (red: 10 issues): `aTrackedFolderReplacedByALinkToAFolderOutsideTheRepositoryIsSkipped`,
+  `aTrackedFolderReplacedByALinkToAFolderInsideTheRepositoryReportsTheFileOnce`,
+  `aLinkInTheMiddleOfALongerPathIsSkipped` (the link as the first, the second
+  and the last folder of `a/b/c/f.txt`, with a violating file behind it) and
+  `aTrackedFolderReplacedByADanglingLinkIsSkipped`.
+- What I chose: `CheckedFile` opens the root of the repository once per call
+  (following links: it is where the user stands, and `/tmp` or `/var` are
+  links on this Mac) and then uses `fstatat(root, path, ...,
+  AT_SYMLINK_NOFOLLOW_ANY)` and `openat(root, path, O_NOFOLLOW_ANY)`. Both
+  flags are defined in `sys/fcntl.h` of the SDK of Xcode 26.4 and are used
+  with a deployment target of macOS 14; I cannot see the SDK of Xcode 27
+  here, but the flags belong to the macOS 13 API, and nothing in the tool
+  depends on a newer one. Tried by hand first, on a scratch directory: with
+  `AT_SYMLINK_NOFOLLOW_ANY` a link in a leading folder gives `ELOOP`, and a
+  link in the last component is described as a link (`S_IFLNK`), like
+  `lstat`. So `kind == .symbolicLink` still works for TASK-004, and `ELOOP`
+  from `inspect` means "below a link": the path is skipped like a deleted
+  file, without an error. A link in the middle of a longer path counts the
+  same as a link in the first or the last folder; every component below the
+  root is checked by the kernel, so there is no path-splitting code.
+  `O_NOFOLLOW_ANY` on the open is the second guard, in case a path changes
+  between the two calls.
+- N1: `aTrackedFolderReplacedByAFileIsSkippedWithoutAnError` (tracked
+  `a/b.txt`, then `a` replaced by a regular file: exit 0, both streams empty).
+- Spec: "The check tool", "The checked set" says that a tracked path below a
+  link is not in the set; the History line and the "Proved by" cell of C5 are
+  updated. Spec changed (small detail).
+- Mutations of the new code, each restored (`cmp` against the copy): the
+  `NOFOLLOW_ANY` flags replaced by the old ones (10 issues in the four new
+  tests, all three depths); `ENOTDIR` not skipped (the N1 test fails);
+  `ELOOP` not skipped (the link tests fail).
+- Checks: `make check` exit 0, 77 tests, 0 warnings;
+  `GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 make test-tools` exit 0.

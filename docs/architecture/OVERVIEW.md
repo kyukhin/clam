@@ -1,7 +1,8 @@
 # Overview
 
-> As of 2026-11-27. **Nothing of the app is built.** The repository holds no
-> Swift file, no Xcode project, no `Makefile` and no workflow.
+> As of 2026-11-28. **The first checks exist; nothing of the app does.** The
+> repository holds a `Makefile` and the Swift package of the check tool, and no
+> Xcode project and no app code.
 
 Read this file before every task. Each part below is marked **exists** or
 **decided**. A decided part names the document that owns it and the epic that
@@ -19,7 +20,9 @@ and specs are not here: `docs/plan/BOARD.md` and the index in
 | Specs | `docs/specs/`: E-01, E-03 | Both approved on 2026-11-27, neither implemented |
 | `LICENSE` | the root | MIT |
 | `README.md` | the root | Describes the kit, not the app. E-04 rewrites it |
-| `.gitignore` | the root | Written before the stack was chosen. E-03 rewrites it |
+| `.gitignore` | the root | Written before the stack was chosen; TASK-002 added the lines for the tool's build output and the editor's files. TASK-004 rewrites it |
+| `Makefile` | the root | `lint`, `test-tools`, `check`. Spec E-03, "Commands" |
+| `Tools/ClamChecks` | | The check tool `clam-checks`: a Swift package for macOS with tests, no dependency. It has the command `whitespace`; the other three wait for TASK-004. Spec E-03, "The check tool" |
 | `.coderabbit.yaml` | the root | The settings of the review bot. Spec E-03, "`.coderabbit.yaml`". The bot reads it only after kyukhin adds `clam` to its installation (spec E-03, H1) |
 | The repository `kyukhin/clam` on GitHub | | Public. Its settings are in force, see "GitHub" |
 
@@ -28,15 +31,19 @@ first task that changes something for the user creates it).
 
 ## Commands
 
-**Exists:** none. Until E-03 a role checks a change with the commands written
-in its own skill: QA, steps 11 and 12; the committer, "File hygiene" and
-"Final check before the commit".
+**Exists:** `make lint`, `make test-tools` and `make check` (spec E-03,
+"Commands"). `make lint` runs the check `whitespace`; `make test-tools` runs the
+tests of the tool; `make check` prints the Swift version, then runs both. The
+developer runs `make check`. The other three checks of E-03 (language, files
+that must not be tracked, secrets) are decided and wait for TASK-004. The skills
+of QA (steps 11 and 12) and of the committer ("File hygiene" and "Final check
+before the commit") still hold their own commands; the dispatcher changes them.
 
 **Decided:**
 
 | Commands | Owner | Made real by |
 |---|---|---|
-| `make lint`, `make test-tools`, `make check`: four checks of the files (language, whitespace, files that must not be tracked, secrets) and the tests of the check tool | spec E-03, "Commands" and "The four checks" | E-03 |
+| The three checks of the files that `make lint` does not run yet: language, files that must not be tracked, secrets | spec E-03, "The four checks" | TASK-004 |
 | `make build`, `make test`, `make ui-test`, `make format`, `make archive`, `make clean-check`, `make testflight`. `make lint` and `make check` grow: the formatter, the boundary and dependency checks, the build, the tests, the archive | spec E-01, "Commands" | E-01 |
 
 Who runs what, once it exists. The developer: `make check`. QA and the

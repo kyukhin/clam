@@ -22,3 +22,7 @@ build/
 *.iml
 .dart_tool/
 .DS_Store
+.build/
+.swiftpm/
+.#*
+\#*#

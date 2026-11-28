@@ -1,12 +1,12 @@
 # Board
 
 Current milestone: M0
-Next role: dispatcher (push and PR of TASK-001); kyukhin (answers about the kit wording: moving branches onto a fresh `master`, the delivery rules, the moment of the fold)
+Next role: kyukhin (merging PR #2 and PR #3, then H1 and H2 on the PR of TASK-001; then the PR of TASK-002)
 
 | Task | Epic | Status | Role now | Note |
 |---|---|---|---|---|
 | TASK-001 Add `.coderabbit.yaml`, the settings of the review bot | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-001.md`); fixed after QA check 1 (B1, N1). depends on nothing; goes first; after its PR is opened: kyukhin's H1 and H2, then C10 of the spec by hand |
-| TASK-002 Create the check tool with the `whitespace` check, and `make check` | E-03 | ready | developer | depends on nothing; can be worked while TASK-001 is; its branch is cut after TASK-001 is in `master` |
+| TASK-002 Create the check tool with the `whitespace` check, and `make check` | E-03 | done | dispatcher | QA PASS (check 2, `docs/qa/TASK-002.md`); fixed after QA check 1 (B1, N1); spec changed (small details, History). depends on nothing; worked on top of the branch of TASK-001 before its merge (kyukhin, 2026-11-28), merged after it |
 | TASK-003 Add the `check` job on GitHub | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-004 is; C12 of the spec by hand on its PR |
 | TASK-004 Add the `tracked-files`, `language` and `secrets` checks | E-03 | draft | project-manager | depends on TASK-002; can be worked while TASK-003 is |
 
@@ -20,7 +20,7 @@ What only kyukhin can do. None of them blocks a task yet.
 | What | Needed for | Status |
 |---|---|---|
 | Apply to Apple for the CarPlay audio entitlement | E-09 and M7: the critical path of everything on the car screen (ADR-0001) | not started |
-| Update the Mac to macOS 26.6 or a later 26.x and install Xcode 27, keeping an Xcode 26.x next to it | the first task of E-01 (spec E-01, K1) | not started |
+| Update the Mac to macOS 26.6 or a later 26.x and install Xcode 27, keeping an Xcode 26.x next to it | the first task of E-01 (spec E-01, K1) | macOS is 26.7.3 (seen on 2026-11-28); Xcode 27 is not installed yet, the Mac has Xcode 26.4 |
 | The App ID `com.kyukhin.Clam`, the App Store Connect record, the certificate and profile, the API key and the local settings file, the TestFlight group | E-01 (spec E-01, K2 to K5 and K7) | not started |
 | The GitHub settings (spec E-01, K6) | E-01 | done 2026-11-27 by the dispatcher on kyukhin's "yes. everything as in LibreDict": the ruleset `master` and the Dependabot settings are copied from `kyukhin/dict-app`; the Actions settings were already the same |
 | The ask rule for delivery commands in `.claude/settings.local.json`; kyukhin's own edit, an agent does not change its permissions | E-01 (spec E-01, K8) | not started |
@@ -87,3 +87,11 @@ What only kyukhin can do. None of them blocks a task yet.
 | 2026-11-27 | TASK-001 | in-progress → in-review: B1 and N1 of QA check 1 fixed | developer |
 | 2026-11-27 | TASK-001 | QA PASS (check 2), stays in-review; committer next | qa |
 | 2026-11-27 | TASK-001 | in-review → done, branch `kyukhin/001-coderabbit-config` | committer |
+| 2026-11-28 | TASK-002 | started on top of the branch of TASK-001, before its merge: "5 yes" to "Do I start TASK-002 without waiting for the first task to be merged?" | kyukhin |
+| 2026-11-28 | TASK-002 | ready → in-progress | developer |
+| 2026-11-28 | TASK-002 | in-progress → in-review | developer |
+| 2026-11-28 | TASK-002 | in-review → in-progress: QA FAIL, see the report (a symbolic link in a leading path component is followed) | qa |
+| 2026-11-28 | TASK-002 | in-progress: developer fixes B1 and N1 of QA check 1 (`docs/qa/TASK-002.md`) | developer |
+| 2026-11-28 | TASK-002 | in-progress → in-review: B1 and N1 of QA check 1 fixed | developer |
+| 2026-11-28 | TASK-002 | QA PASS (check 2), stays in-review; committer next | qa |
+| 2026-11-28 | TASK-002 | in-review → done, branch `kyukhin/002-check-tool` | committer |
